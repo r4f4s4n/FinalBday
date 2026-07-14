@@ -3,31 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Principal</title>
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
-        
-        /* El vídeo se queda exactamente como lo tenías, sin contenedores extra */
-        video { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; 
-            z-index: 0; 
-        }
+        .container { position: relative; width: 100vw; height: 100vh; }
+        video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
 
-        /* Capa superior para el cuadrado */
-        .overlay-content {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 10; pointer-events: none; /* Esto permite que el clic pase a través si fuera necesario */
-        }
-
+        /* Contenedor del cuadrado 1x1 con borde animado */
         .custom-card {
-            width: 80vw; height: 80vw; max-width: 300px; max-height: 300px;
+            position: absolute;
+            top: 15%; /* Mitad superior */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80vw; /* Cuadrado basado en el ancho */
+            height: 80vw;
+            max-width: 300px;
+            max-height: 300px;
             border: 4px solid #ffcc00;
-            background: rgba(0,0,0,0.3);
-            display: flex; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Animación de borde */
             animation: border-dance 2s infinite linear;
-            pointer-events: auto; /* Para que el clic funcione aquí */
-            cursor: pointer;
         }
 
         .custom-card img { width: 90%; height: 90%; object-fit: contain; }
@@ -40,15 +37,13 @@
     </style>
 </head>
 <body>
+    <div class="container">
+        <video autoplay muted loop playsinline id="app-bg-video">
+            <source src="disco_movil.mp4" media="(max-width: 768px)">
+            <source src="disco_escritorio.mp4" media="(min-width: 769px)">
+        </video>
 
-    <!-- VIDEO (Sin cambios respecto a tu original) -->
-    <video autoplay muted loop playsinline id="app-bg-video">
-        <source src="disco_movil.mp4" media="(max-width: 768px)">
-        <source src="video_escritorio.mp4" media="(min-width: 769px)">
-    </video>
-
-    <!-- CAPA SUPERIOR -->
-    <div class="overlay-content">
+        <!-- Aquí irá tu imagen -->
         <div class="custom-card" id="card">
             <img id="custom-img" src="customs/custom1.png" alt="Custom">
         </div>
@@ -56,8 +51,9 @@
 
     <script>
         let currentIndex = 1;
-        const totalImages = 5; 
+        const totalImages = 5; // Cambia esto según cuántas fotos subas
 
+        // Lógica de swipe simple (puedes ampliarla después)
         document.getElementById('card').addEventListener('click', () => {
             currentIndex = (currentIndex % totalImages) + 1;
             document.getElementById('custom-img').src = `customs/custom${currentIndex}.png`;
