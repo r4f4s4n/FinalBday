@@ -29,6 +29,17 @@
 
         .custom-card img { width: 100%; height: 100%; object-fit: contain; opacity: 88%;}
 
+        .metadata {
+            position: absolute;
+            bottom: 10px;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            text-align: center;
+            background: rgba(0,0,0,0.6);
+            padding: 5px;
+        }
+
         @keyframes border-dance {
             0% { border-color: #ffcc00; }
             50% { border-color: #ff00ff; }
@@ -46,18 +57,40 @@
         <!-- Aquí irá tu imagen -->
         <div class="custom-card" id="card">
             <img id="custom-img" src="customs/custom1.png" alt="Custom">
+            <div class="metadata" id="metadata">
+                <p id="meta-year"></p>
+                <p id="meta-theme"></p>
+            </div>
         </div>
     </div>
 
     <script>
         let currentIndex = 1;
-        const totalImages = 5; // Cambia esto según cuántas fotos subas
+        const totalImages = 4; 
+        const customsData = {
+            1: { year: "2013", theme: "Hospital" },
+            2: { year: "2015", theme: "Paradas de Metro" },
+            3: { year: "2023", theme: "Tribus urbanas" },
+            4: { year: "2022", theme: "Cumple de la Historia" },
+            5: { year: "2026", theme: "Disco Night" }
+        };
 
-        // Lógica de swipe simple (puedes ampliarla después)
         document.getElementById('card').addEventListener('click', () => {
-            currentIndex = (currentIndex % totalImages) + 1;
-            document.getElementById('custom-img').src = `customs/custom${currentIndex}.png`;
+        currentIndex = (currentIndex % totalImages) + 1;
+        
+        // Cambiar imagen
+        document.getElementById('custom-img').src = `customs/custom${currentIndex}.png`;
+        
+        // Cambiar metadatos
+        document.getElementById('meta-year').innerText = "Año: " + customsData[currentIndex].year;
+        document.getElementById('meta-theme').innerText = "Temática: " + customsData[currentIndex].theme;
         });
+        
+        // Llamada inicial para mostrar los datos del primero nada más cargar
+        window.onload = () => {
+            document.getElementById('meta-year').innerText = "Año: " + customsData[1].year;
+            document.getElementById('meta-theme').innerText = "Temática: " + customsData[1].theme;
+        };
     </script>
 </body>
 </html>
