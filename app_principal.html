@@ -3,19 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Principal</title>
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
         .container { position: relative; width: 100vw; height: 100vh; }
-        video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
+
+        /* Contenedor del cuadrado 1x1 con borde animado */
+        .custom-card {
+            position: absolute;
+            top: 15%; /* Mitad superior */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80vw; /* Cuadrado basado en el ancho */
+            height: 80vw;
+            max-width: 300px;
+            max-height: 300px;
+            border: 4px solid #ffcc00;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Animación de borde */
+            animation: border-dance 2s infinite linear;
+        }
+
+        .custom-card img { width: 90%; height: 90%; object-fit: contain; }
+
+        @keyframes border-dance {
+            0% { border-color: #ffcc00; }
+            50% { border-color: #ff00ff; }
+            100% { border-color: #ffcc00; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-       <video autoplay muted loop playsinline id="app-bg-video">
+        <video autoplay muted loop playsinline id="app-bg-video">
             <source src="disco_movil.mp4" media="(max-width: 768px)">
-            <source src="video_escritorio.mp4" media="(min-width: 769px)">
+            <source src="disco_escritorio.mp4" media="(min-width: 769px)">
         </video>
+
+        <!-- Aquí irá tu imagen -->
+        <div class="custom-card" id="card">
+            <img id="custom-img" src="customs/custom1.png" alt="Custom">
+        </div>
     </div>
+
+    <script>
+        let currentIndex = 1;
+        const totalImages = 5; // Cambia esto según cuántas fotos subas
+
+        // Lógica de swipe simple (puedes ampliarla después)
+        document.getElementById('card').addEventListener('click', () => {
+            currentIndex = (currentIndex % totalImages) + 1;
+            document.getElementById('custom-img').src = `customs/custom${currentIndex}.png`;
+        });
+    </script>
 </body>
 </html>
