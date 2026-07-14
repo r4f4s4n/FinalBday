@@ -11,7 +11,7 @@
         /* Contenedor del cuadrado 1x1 con borde animado */
         .custom-card {
             position: absolute;
-            top: 10%; /* Mitad superior */
+            top: 5%; /* Mitad superior */
             left: 50%;
             transform: translateX(-50%);
             width: 90vw; /* Cuadrado basado en el ancho */
@@ -30,10 +30,10 @@
         .custom-card img { width: 100%; height: 100%; object-fit: contain; opacity: 88%;}
 
         .marquee-text {
-            display: inline-block;
+            display: inline-flex;
             padding-left: 100%;
             animation: marquee 7s linear infinite;
-            font-family: 'Press Start 2P', cursive;
+            font-family: 'Helvetica', cursive;
             color: #ff0505;
             font-size: 25px;
             z-index: 5;
@@ -48,6 +48,7 @@
             background: #000; /* Fondo negro sólido para el letrero */
             z-index: 2;
             height: 40px; /* Ajusta a la altura de tu texto */
+            opacity: 80%;
         }
         
         .crt-overlay {
@@ -122,8 +123,8 @@
         
         // Llamada inicial para mostrar los datos del primero nada más cargar
         window.onload = () => {
-            document.getElementById('meta-year').innerText = customsData[1].year;
-            document.getElementById('meta-theme').innerText = customsData[1].theme;
+            document.getElementById('meta-year').innerText = customsData[1].year + " ";
+            document.getElementById('meta-theme').innerText = " " + customsData[1].theme;
         };
     </script>
 </body>
