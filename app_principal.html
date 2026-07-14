@@ -29,15 +29,28 @@
 
         .custom-card img { width: 100%; height: 100%; object-fit: contain; opacity: 88%;}
 
-        .metadata {
-            position: absolute;
-            bottom: 10px;
-            color: #fff;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 10px;
-            text-align: center;
+        .marquee-container {
+            width: 100%;
+            overflow: hidden; /* Esto oculta el texto cuando sale de la caja */
+            white-space: nowrap; /* Evita que el texto salte de línea */
             background: rgba(0,0,0,0.6);
-            padding: 5px;
+            padding: 10px 0;
+            position: absolute;
+            bottom: 0;
+        }
+        
+        .marquee-text {
+            display: inline-block;
+            padding-left: 100%; /* Empieza fuera a la derecha */
+            animation: marquee 10s linear infinite; /* 10 segundos por vuelta */
+            font-family: 'Press Start 2P', cursive;
+            color: #00ff00; /* Típico verde LED */
+            font-size: 12px;
+        }
+        
+        @keyframes marquee {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
         }
 
         @keyframes border-dance {
@@ -55,12 +68,13 @@
         </video>
 
         <!-- Aquí irá tu imagen -->
+        <div class="marquee-container">
+            <div class="marquee-text" id="metadata">
+                <span id="meta-year"></span> | <span id="meta-theme"></span>
+            </div>
+        </div>
         <div class="custom-card" id="card">
             <img id="custom-img" src="customs/custom1.png" alt="Custom">
-            <div class="metadata" id="metadata">
-                <p id="meta-year"></p>
-                <p id="meta-theme"></p>
-            </div>
         </div>
     </div>
 
@@ -88,8 +102,8 @@
         
         // Llamada inicial para mostrar los datos del primero nada más cargar
         window.onload = () => {
-            document.getElementById('meta-year').innerText = "Año: " + customsData[1].year;
-            document.getElementById('meta-theme').innerText = "Temática: " + customsData[1].theme;
+            document.getElementById('meta-year').innerText = customsData[1].year;
+            document.getElementById('meta-theme').innerText = customsData[1].theme;
         };
     </script>
 </body>
