@@ -115,22 +115,37 @@
             5: { year: "2026", theme: "Disco Night" }
         };
 
+        // Función para crear un array de índices [1, 2, 3, 4, 5] y barajarlo
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    
+        let order = shuffleArray([1, 2, 3, 4, 5]);
+        let index = 0; // Puntero para recorrer el array barajado
+    
+        function updateView() {
+            const currentId = order[index];
+            document.getElementById('custom-img').src = `customs/custom${currentId}.png`;
+            document.getElementById('meta-year').innerText = customsData[currentId].year + " ";
+            document.getElementById('meta-theme').innerText = " " + customsData[currentId].theme;
+        }
+    
         document.getElementById('card').addEventListener('click', () => {
-        currentIndex = (currentIndex % totalImages) + 1;
-        
-        // Cambiar imagen
-        document.getElementById('custom-img').src = `customs/custom${currentIndex}.png`;
-        
-        // Cambiar metadatos
-        document.getElementById('meta-year').innerText = customsData[currentIndex].year + " ";
-        document.getElementById('meta-theme').innerText = " " + customsData[currentIndex].theme;
+            index++;
+            // Si llegamos al final, barajamos de nuevo y volvemos a empezar
+            if (index >= totalImages) {
+                order = shuffleArray([1, 2, 3, 4, 5]);
+                index = 0;
+            }
+            updateView();
         });
-        
-        // Llamada inicial para mostrar los datos del primero nada más cargar
-        window.onload = () => {
-            document.getElementById('meta-year').innerText = customsData[1].year + " ";
-            document.getElementById('meta-theme').innerText = " " + customsData[1].theme;
-        };
+    
+        // Inicializar
+        window.onload = updateView;
     </script>
 </body>
 </html>
