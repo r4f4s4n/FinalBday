@@ -869,12 +869,14 @@
             const selectedYear = e.target.value;
 
             if (selectedYear === 'all') {
-                // 1. Mostrar contenedor primero
-                mainGridEl.style.display = 'none';
+               mainGridEl.style.display = 'none';
                 mainSwiperEl.style.display = 'block';
-                diceBtn.style.display = 'flex';
                 
-                // 2. Renderizar swiper cuando ya es visible
+                // CORRECCIÓN: Asegura que el slider sea visible
+                mainSwiperEl.style.opacity = '1'; 
+                mainSwiperEl.style.pointerEvents = 'auto';
+                
+                diceBtn.style.display = 'flex';
                 renderSlider('all');
             } else {
                 mainSwiperEl.style.display = 'none';
