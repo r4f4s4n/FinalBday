@@ -22,7 +22,7 @@
             height: 100dvh; 
         }
         
-        /* Vídeo de fondo general de la app */
+        /* Vídeo de fondo general de la app[cite: 1] */
         #app-bg-video { 
             position: absolute; 
             top: 0; 
@@ -33,20 +33,24 @@
             z-index: 0; 
         }
 
-        /* PANTALLA DE CARGA RETRO ARCADE */
+        /* PANTALLA DE CARGA RETRO TRANSLÚCIDA (Mejorado) */
         .arcade-loader-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100dvh;
-            background: #000000; /* Fondo totalmente negro */
-            z-index: 200; /* Por encima de absolutamente todo */
+            /* Fondo semitransparente para ver el video correr por detrás */
+            background: rgba(0, 0, 0, 0.75); 
+            backdrop-filter: blur(3px); /* Suave desenfoque estilo cristal */
+            -webkit-backdrop-filter: blur(3px);
+            z-index: 200; /* Siempre por encima de todo */
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             transition: opacity 0.5s ease, visibility 0.5s ease;
+            pointer-events: all; /* Bloquea por completo clics de fondo */
         }
 
         .arcade-loader-text {
@@ -57,7 +61,7 @@
             text-shadow: 3px 3px 0px #000, 0 0 10px #ff00ff;
             text-transform: uppercase;
             letter-spacing: 4px;
-            animation: arcade-blink 0.8s steps(2, start) infinite; /* Parpadeo robótico clásico */
+            animation: arcade-blink 0.8s steps(2, start) infinite;
         }
 
         @keyframes arcade-blink {
@@ -69,14 +73,14 @@
             position: absolute;
             top: 15px;
             left: 15px;
-            z-index: 30; /* Por encima del swiper y grid */
-            opacity: 0; /* Oculto inicialmente hasta terminar carga */
+            z-index: 30; 
+            opacity: 0; /* Oculto inicialmente */
             pointer-events: none;
             transition: opacity 0.3s ease;
         }
 
         .arcade-select {
-            background: #ff00ff; /* Fucsia neón */
+            background: #ff00ff; 
             color: #ffffff;
             font-family: 'Helvetica', sans-serif;
             font-weight: bold;
@@ -395,7 +399,7 @@
     </style>
 </head>
 <body>
-    <!-- Pantalla de Carga 8-Bits -->
+    <!-- Pantalla de Carga 8-Bits Semitransparente -->
     <div class="arcade-loader-overlay" id="arcade-loader">
         <div class="arcade-loader-text">CARGANDO...</div>
     </div>
@@ -419,7 +423,7 @@
             </svg>
         </div>
 
-        <!-- Vídeo de fondo principal -->
+        <!-- Vídeo de fondo principal[cite: 1] -->
         <video autoplay muted loop playsinline id="app-bg-video">
             <source src="disco_movil.mp4" media="(max-width: 768px)">
             <source src="disco_movil.mp4" media="(min-width: 769px)">
@@ -463,10 +467,10 @@
             3: { year: "2023", category: "Tribus urbanas", theme: "Jubilada", file: "custom3.jpg" },
             4: { year: "2022", category: "La Historia", theme: "Gernika", file: "custom4.png" },
             5: { year: "2013", category: "Hospital", theme: "Manicomio", file: "custom5.png" },
-            6: { year: "2013", category: "Los Grammys", theme: "Kurt Cobain", file: "custom6.png" },
-            7: { year: "2013", category: "Los Grammys", theme: "Britney Spears", file: "custom7.png" },
-            8: { year: "2013", category: "Los Grammys", theme: "Freddy Mercury & Toni Moreno", file: "custom8.png" },
-            9: { year: "2013", category: "Los Grammys", theme: "La Pantoja", file: "custom9.png" },
+            6: { year: "2014", category: "Los Grammys", theme: "Kurt Cobain", file: "custom6.png" },
+            7: { year: "2014", category: "Los Grammys", theme: "Britney Spears", file: "custom7.png" },
+            8: { year: "2014", category: "Los Grammys", theme: "Freddy Mercury & Toni Moreno", file: "custom8.png" },
+            9: { year: "2014", category: "Los Grammys", theme: "La Pantoja", file: "custom9.png" },
             10: { year: "2013", category: "Los Grammys", theme: "Aretha Franklin", file: "custom10.png" },
             11: { year: "2015", category: "Paradas de Metro", theme: "Havenido de América", file: "custom11.png" },
             12: { year: "2017", category: "Películas", theme: "Genio", file: "custom12.png" },
@@ -527,7 +531,7 @@
             67: { year: "2024", category: "Navidad", theme: "Muñeco de nieve", file: "custom67.png" },
             68: { year: "2024", category: "Navidad", theme: "Ana Obregón", file: "custom68.png" },
             69: { year: "2024", category: "Navidad", theme: "Tio de Nadal", file: "custom69.png" },
-            70: { year: "2024", category: "Navidad", theme: "Virgen", file: "custom70.mp4" },
+            70: { year: "2024", category: "Navidad", theme: "Virgen", file: "custom70.png" },
             71: { year: "2024", category: "Navidad", theme: "Calvo lotería", file: "custom71.png" },
             72: { year: "2024", category: "Navidad", theme: "San Silvestre", file: "custom72.png" },
             73: { year: "2024", category: "Navidad", theme: "Invisible", file: "custom73.png" },
@@ -557,7 +561,6 @@
             97: { year: "2025", category: "Dibujitos", theme: "Maestro Mutenrroy", file: "custom97.png" }
         };
 
-        // Función para barajar un array
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -570,30 +573,50 @@
         const order = shuffleArray(Object.keys(customsData).map(Number));
         const wrapper = document.getElementById('slides-wrapper');
 
-        // Lógica de precarga de recursos
+        // Lógica de precarga de recursos robusta
         let totalMediaToLoad = 0;
         let mediaLoadedCount = 0;
+        let isAppReady = false; // Flag para evitar llamadas dobles
+
+        // Función centralizada de inicio de App
+        function forceStartApp() {
+            if (isAppReady) return;
+            isAppReady = true;
+
+            console.log("Iniciando aplicación. Recursos listos.");
+
+            // Ocultar la pantalla de carga con desvanecimiento
+            const loader = document.getElementById('arcade-loader');
+            loader.style.opacity = '0';
+            loader.style.visibility = 'hidden';
+
+            // Desbloquear controles superiores
+            const selectContainer = document.getElementById('select-container');
+            const diceBtn = document.getElementById('random-dice');
+            selectContainer.style.opacity = '1';
+            selectContainer.style.pointerEvents = 'auto';
+            diceBtn.style.opacity = '1';
+            diceBtn.style.pointerEvents = 'auto';
+
+            // Actualizar Swiper para el render definitivo
+            swiper.update();
+        }
 
         function checkAllMediaLoaded() {
+            if (isAppReady) return;
             mediaLoadedCount++;
             if (mediaLoadedCount >= totalMediaToLoad) {
-                // Desvanecer la pantalla de carga
-                const loader = document.getElementById('arcade-loader');
-                loader.style.opacity = '0';
-                loader.style.visibility = 'hidden';
-
-                // Habilitar y mostrar los botones superiores de control
-                const selectContainer = document.getElementById('select-container');
-                const diceBtn = document.getElementById('random-dice');
-                selectContainer.style.opacity = '1';
-                selectContainer.style.pointerEvents = 'auto';
-                diceBtn.style.opacity = '1';
-                diceBtn.style.pointerEvents = 'auto';
-
-                // Actualizar Swiper ahora que los tamaños de recursos se han asentado
-                swiper.update();
+                forceStartApp();
             }
         }
+
+        // FUSIBLE DE SEGURIDAD RETRO: Si pasan 4 segundos, forzamos inicio pase lo que pase
+        setTimeout(() => {
+            if (!isAppReady) {
+                console.warn("Fusible de carga activado (Timeout). Iniciando aplicación de forma forzada.");
+                forceStartApp();
+            }
+        }, 4000); 
     
         // Inyectamos las tarjetas en el Slider
         order.forEach((id) => {
@@ -605,14 +628,13 @@
             
             const file = customsData[id].file || `custom${id}.png`;
             let mediaHTML = '';
-            totalMediaToLoad++; // Sumamos al contador de recursos
+            totalMediaToLoad++; // Sumamos al contador
     
+            // Añadimos tanto onload/onloadedmetadata como onerror en todas las etiquetas
             if (file && file.endsWith('.mp4')) {
-                // Se ejecuta al cargar los metadatos iniciales del video
-                mediaHTML = `<video class="custom-media" autoplay muted loop playsinline onloadedmetadata="checkAllMediaLoaded()" src="customs/${file}"></video>`;
+                mediaHTML = `<video class="custom-media" autoplay muted loop playsinline onloadedmetadata="checkAllMediaLoaded()" onerror="checkAllMediaLoaded()" src="customs/${file}"></video>`;
             } else {
-                // Se ejecuta al descargar la imagen por completo
-                mediaHTML = `<img src="customs/${file}" onload="checkAllMediaLoaded()" alt="Custom">`;
+                mediaHTML = `<img src="customs/${file}" onload="checkAllMediaLoaded()" onerror="checkAllMediaLoaded()" alt="Custom">`;
             }
             
             const textHTML = `<span>${customsData[id].year}</span> | <span>${customsData[id].theme}</span> &nbsp;&nbsp;*&nbsp;&nbsp;`;
