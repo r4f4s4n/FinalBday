@@ -598,12 +598,13 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script>
-        // --- 1. BLOQUEO DE ATRÁS ---
+	
+		// --- 1. BLOQUEO DE ATRÁS ---
         history.pushState(null, null, location.href);
         window.addEventListener('popstate', function () {
             history.pushState(null, null, location.href);
         });
-        
+		
         const customsData = {
             1: { year: "2013", category: "Hospital", theme: "Enfermera sexy", file: "custom1.jpg" },
             2: { year: "2015", category: "Paradas de Metro", theme: "Chueca esos 5", file: "custom2.png" },
@@ -704,82 +705,6 @@
             97: { year: "2025", category: "Dibujitos", theme: "Maestro Mutenroy", file: "custom97.png" }
         };
 
-        // --- 2. LOGICA DE RENDERIZADO REUTILIZABLE ---
-        const swiper = new Swiper('.swiper', { slidesPerView: 'auto', centeredSlides: true, spaceBetween: 25, loop: true, grabCursor: true });
-
-        function createSlideElement(id) {
-            const data = customsData[id];
-            const slide = document.createElement('div');
-            slide.className = 'swiper-slide';
-            slide.setAttribute('data-id', id);
-            const file = data.file || `custom${id}.png`;
-            const mediaHTML = file.endsWith('.mp4') ? `<video class="custom-media" autoplay muted loop playsinline src="customs/${file}"></video>` : `<img src="customs/${file}" alt="Custom">`;
-            const textHTML = `<span>${data.year}</span> | <span>${data.theme}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
-            slide.innerHTML = `${mediaHTML}<div class="marquee-container"><div class="crt-overlay"></div><div class="marquee-text">${textHTML}</div><div class="marquee-text" aria-hidden="true">${textHTML}</div></div>`;
-            return slide;
-        }
-
-        function updateSwiperContent(ids) {
-            swiper.removeAllSlides();
-            ids.forEach(id => {
-                swiper.appendSlide(createSlideElement(id));
-            });
-            swiper.update();
-        }
-
-        // --- 3. INICIALIZACIÓN Y FILTRADO ---
-        const allIds = Object.keys(customsData).map(Number);
-        
-        // Poblar Select con categorías únicas
-        const select = document.getElementById('year-select');
-        const categories = [...new Set(Object.values(customsData).map(d => d.category))].sort();
-        categories.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat;
-            option.textContent = cat.toUpperCase();
-            select.appendChild(option);
-        });
-
-        select.addEventListener('change', (e) => {
-            const val = e.target.value;
-            if (val === 'all') {
-                document.getElementById('main-grid').style.display = 'none';
-                document.getElementById('main-swiper').style.display = 'block';
-                document.getElementById('random-dice').style.display = 'flex';
-                updateSwiperContent(allIds);
-            } else {
-                const filtered = allIds.filter(id => customsData[id].category === val);
-                renderGrid(filtered);
-            }
-        });
-
-        function renderGrid(ids) {
-            document.getElementById('main-swiper').style.display = 'none';
-            document.getElementById('random-dice').style.display = 'none';
-            const gridWrapper = document.getElementById('grid-wrapper');
-            gridWrapper.innerHTML = '';
-            document.getElementById('main-grid').style.display = 'block';
-
-            ids.forEach(id => {
-                const item = document.createElement('div');
-                item.className = 'grid-item';
-                const file = customsData[id].file;
-                item.innerHTML = file.endsWith('.mp4') ? `<video src="customs/${file}"></video>` : `<img src="customs/${file}">`;
-                item.onclick = () => {
-                    // Acción al seleccionar miniatura
-                    updateSwiperContent(ids);
-                    document.getElementById('main-grid').style.display = 'none';
-                    document.getElementById('main-swiper').style.display = 'block';
-                    document.getElementById('random-dice').style.display = 'flex';
-                    
-                    // Buscar índice y saltar
-                    const index = ids.indexOf(id);
-                    swiper.slideToLoop(index, 0);
-                };
-                gridWrapper.appendChild(item);
-            });
-        }
-
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -799,7 +724,7 @@
             if (isAppReady) return;
             isAppReady = true;
 
-            updateSwiperContent(allIds);
+            console.log("Iniciando aplicación. Recursos listos.");
 
             const loader = document.getElementById('arcade-loader');
             loader.style.opacity = '0';
@@ -836,6 +761,44 @@
                 forceStartApp();
             }
         }, 4000); 
+    
+        order.forEach((id) => {
+            if (!customsData[id]) return;
+    
+            const slide = document.createElement('div');
+            slide.className = 'swiper-slide';
+            slide.setAttribute('data-id', id);
+            
+            const file = customsData[id].file || `custom${id}.png`;
+            let mediaHTML = '';
+            totalMediaToLoad++;
+    
+            if (file && file.endsWith('.mp4')) {
+                mediaHTML = `<video class="custom-media" autoplay muted loop playsinline oncanplaythrough="checkAllMediaLoaded()" onerror="checkAllMediaLoaded()" src="customs/${file}"></video>`;
+            } else {
+                mediaHTML = `<img src="customs/${file}" onload="checkAllMediaLoaded()" onerror="checkAllMediaLoaded()" alt="Custom">`;
+            }
+            
+            const textHTML = `<span>${customsData[id].year}</span> | <span>${customsData[id].theme}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
+            
+            slide.innerHTML = `
+                ${mediaHTML}
+                <div class="marquee-container">
+                    <div class="crt-overlay"></div>
+                    <div class="marquee-text">${textHTML}</div>
+                    <div class="marquee-text" aria-hidden="true">${textHTML}</div>
+                </div>
+            `;
+            wrapper.appendChild(slide);
+        });
+    
+        const swiper = new Swiper('.swiper', {
+            slidesPerView: 'auto',      
+            centeredSlides: true,       
+            spaceBetween: 25,           
+            loop: true,                 
+            grabCursor: true,           
+        });
 
         const select = document.getElementById('year-select');
         const selectOptionsMap = {};
