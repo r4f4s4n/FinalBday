@@ -1,159 +1,173 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
-        .container { position: relative; width: 100vw; height: 100vh; }
-        
-        /* CORRECCIÓN DEL VÍDEO: Altura total, ancho automático y centrado */
-        video { 
-            position: absolute; 
-            top: 0; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            height: 100%; 
-            width: auto; 
-            z-index: 0; 
-        }
-
-        /* Contenedor del cuadrado 1x1 con borde animado */
-        .custom-card {
-            position: absolute;
-            top: 7%; /* Mitad superior */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90vw; /* Cuadrado basado en el ancho */
-            height: 90vw;
-            max-width: 350px;
-            max-height: 350px;
-            border: 4px solid #ffcc00;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            /* Animación de borde */
-            animation: border-dance 2s infinite linear;
-        }
-
-        .custom-card img { width: 100%; height: 100%; object-fit: contain; opacity: 88%;}
-
-        .marquee-text {
-            display: inline-flex;
-            padding-left: 100%;
-            animation: marquee 8s linear infinite;
-            font-family: 'Helvetica', cursive;
-            color: #ff0505;
-            font-size: 25px;
-            z-index: 5;
-            position: relative;
-            margin-top: 1%;
-        }
-
-        .marquee-text span {
-            margin-inline: 6px;
-        }
-        
-        .marquee-container {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            overflow: hidden;
-            background: #000; /* Fondo negro sólido para el letrero */
-            z-index: 2;
-            height: 40px; /* Ajusta a la altura de tu texto */
-            opacity: 80%;
-        }
-        
-        .crt-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 10; /* Debe estar por encima del texto */
-            background: linear-gradient(
-                rgba(18, 16, 16, 0) 50%, 
-                rgba(0, 0, 0, 0.5) 50%
-            );
-            background-size: 100% 4px; /* Solo líneas horizontales para el LED */
-        }
-        
-        @keyframes marquee {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(-100%, 0); }
-        }
-
-        @keyframes border-dance {
-            0% { border-color: #ffcc00; }
-            50% { border-color: #ff00ff; }
-            100% { border-color: #ffcc00; }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <video autoplay muted loop playsinline id="app-bg-video">
-            <source src="disco_movil.mp4" media="(max-width: 768px)">
-            <source src="disco_movil.mp4" media="(min-width: 769px)">
-        </video>
-        
-        <!-- Aquí irá tu imagen -->
-        <div class="custom-card" id="card">
-            <img id="custom-img" src="customs/custom1.png" alt="Custom">
-            <div class="marquee-container">
-                <!-- El overlay ahora es hijo del marquee, solo afectará a esta zona -->
-                <div class="crt-overlay"></div>
-                
-                <div class="marquee-text" id="metadata">
-                    <span id="meta-year"></span> | <span id="meta-theme"></span>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <style>
+            /* Usamos 100dvh para blindar el alto del html y body en móviles */
+            body, html { 
+                margin: 0; 
+                padding: 0; 
+                width: 100%; 
+                height: 100dvh; 
+                overflow: hidden; 
+                background: #000; 
+            }
+            
+            /* El contenedor ahora se adapta dinámicamente al alto real visible */
+            .container { 
+                position: relative; 
+                width: 100vw; 
+                height: 100dvh; 
+            }
+            
+            /* El vídeo se fuerza a medir exactamente el 100% de la altura dinámica visible */
+            video { 
+                position: absolute; 
+                top: 0; 
+                left: 50%; 
+                transform: translateX(-50%); 
+                height: 100dvh; 
+                width: auto; 
+                z-index: 0; 
+            }
+    
+            /* Contenedor del cuadrado 1x1 con borde animado */
+            .custom-card {
+                position: absolute;
+                top: 7%; /* Mitad superior */
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90vw; /* Cuadrado basado en el ancho */
+                height: 90vw;
+                max-width: 350px;
+                max-height: 350px;
+                border: 4px solid #ffcc00;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                /* Animación de borde */
+                animation: border-dance 2s infinite linear;
+            }
+    
+            .custom-card img { width: 100%; height: 100%; object-fit: contain; opacity: 88%;}
+    
+            .marquee-text {
+                display: inline-flex;
+                padding-left: 100%;
+                animation: marquee 8s linear infinite;
+                font-family: 'Helvetica', cursive;
+                color: #ff0505;
+                font-size: 25px;
+                z-index: 5;
+                position: relative;
+                margin-top: 1%;
+            }
+    
+            .marquee-text span {
+                margin-inline: 6px;
+            }
+            
+            .marquee-container {
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+                overflow: hidden;
+                background: #000; /* Fondo negro sólido para el letrero */
+                z-index: 2;
+                height: 40px; /* Ajusta a la altura de tu texto */
+                opacity: 80%;
+            }
+            
+            .crt-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 10; /* Debe estar por encima del texto */
+                background: linear-gradient(
+                    rgba(18, 16, 16, 0) 50%, 
+                    rgba(0, 0, 0, 0.5) 50%
+                );
+                background-size: 100% 4px; /* Solo líneas horizontales para el LED */
+            }
+            
+            @keyframes marquee {
+                0% { transform: translate(0, 0); }
+                100% { transform: translate(-100%, 0); }
+            }
+    
+            @keyframes border-dance {
+                0% { border-color: #ffcc00; }
+                50% { border-color: #ff00ff; }
+                100% { border-color: #ffcc00; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <video autoplay muted loop playsinline id="app-bg-video">
+                <source src="disco_movil.mp4" media="(max-width: 768px)">
+                <source src="disco_movil.mp4" media="(min-width: 769px)">
+            </video>
+            
+            <!-- Aquí irá tu imagen -->
+            <div class="custom-card" id="card">
+                <img id="custom-img" src="customs/custom1.png" alt="Custom">
+                <div class="marquee-container">
+                    <!-- El overlay ahora es hijo del marquee, solo afectará a esta zona -->
+                    <div class="crt-overlay"></div>
+                    
+                    <div class="marquee-text" id="metadata">
+                        <span id="meta-year"></span> | <span id="meta-theme"></span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <script>
-        const totalImages = 4; 
-        const customsData = {
-            1: { year: "2013", theme: "Enfermera sexy" },
-            2: { year: "2015", theme: "Chueca esos 5" },
-            3: { year: "2023", theme: "Abuela camella" },
-            4: { year: "2022", theme: "Gernika" }
-        };
-
-        // Función para crear un array de índices [1, 2, 3, 4] y barajarlo
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+    
+        <script>
+            const totalImages = 4; 
+            const customsData = {
+                1: { year: "2013", theme: "Enfermera sexy" },
+                2: { year: "2015", theme: "Chueca esos 5" },
+                3: { year: "2023", theme: "Abuela camella" },
+                4: { year: "2022", theme: "Gernika" }
+            };
+    
+            // Función para crear un array de índices [1, 2, 3, 4] y barajarlo
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
             }
-            return array;
-        }
-    
-        let order = shuffleArray([1, 2, 3, 4]);
-        let index = 0; // Puntero para recorrer el array barajado
-    
-        function updateView() {
-            const currentId = order[index];
-            document.getElementById('custom-img').src = `customs/custom${currentId}.png`;
-            document.getElementById('meta-year').innerText = customsData[currentId].year + " ";
-            document.getElementById('meta-theme').innerText = " " + customsData[currentId].theme;
-        }
-    
-        document.getElementById('card').addEventListener('click', () => {
-            index++;
-            // Si llegamos al final, barajamos de nuevo y volvemos a empezar
-            if (index >= totalImages) {
-                order = shuffleArray([1, 2, 3, 4]);
-                index = 0;
+        
+            let order = shuffleArray([1, 2, 3, 4]);
+            let index = 0; // Puntero para recorrer el array barajado
+        
+            function updateView() {
+                const currentId = order[index];
+                document.getElementById('custom-img').src = `customs/custom${currentId}.png`;
+                document.getElementById('meta-year').innerText = customsData[currentId].year + " ";
+                document.getElementById('meta-theme').innerText = " " + customsData[currentId].theme;
             }
-            updateView();
-        });
-    
-        // Inicializar
-        window.onload = updateView;
-    </script>
-</body>
+        
+            document.getElementById('card').addEventListener('click', () => {
+                index++;
+                // Si llegamos al final, barajamos de nuevo y volvemos a empezar
+                if (index >= totalImages) {
+                    order = shuffleArray([1, 2, 3, 4]);
+                    index = 0;
+                }
+                updateView();
+            });
+        
+            // Inicializar
+            window.onload = updateView;
+        </script>
+    </body>
 </html>
