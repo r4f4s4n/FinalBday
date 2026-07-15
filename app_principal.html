@@ -869,10 +869,13 @@
             const selectedYear = e.target.value;
 
             if (selectedYear === 'all') {
-                renderSlider('all');
+                // 1. Mostrar contenedor primero
                 mainGridEl.style.display = 'none';
                 mainSwiperEl.style.display = 'block';
                 diceBtn.style.display = 'flex';
+                
+                // 2. Renderizar swiper cuando ya es visible
+                renderSlider('all');
             } else {
                 mainSwiperEl.style.display = 'none';
                 diceBtn.style.display = 'none';
@@ -903,17 +906,15 @@
                     gridItem.addEventListener('click', () => {
                         const targetId = parseInt(id);
 
-                        // 1. Reconstruimos el slider SÓLO con los elementos de ese año
-                        renderSlider(selectedYear);
-
-                        // 2. Ocultamos el grid y mostramos el slider
+                        // 1. Mostrar el contenedor ANTES de inicializar Swiper
                         mainGridEl.style.display = 'none';
                         mainSwiperEl.style.display = 'block';
+                        diceBtn.style.display = 'none'; // El dado se oculta en los años filtrados
                         
-                        // Ocultamos el dado porque estamos dentro de un año filtrado
-                        diceBtn.style.display = 'none';
-                        
-                        // 3. Calculamos la posición real dentro del array filtrado
+                        // 2. Reconstruimos el slider con la nueva vista visible
+                        renderSlider(selectedYear);
+
+                        // 3. Calculamos la posición real dentro del array filtrado y deslizamos a ella
                         const realIndex = currentSliderIds.indexOf(targetId);
                         if (realIndex !== -1) {
                             swiper.slideToLoop(realIndex, 0);
@@ -986,6 +987,8 @@
 
             // Volvemos al estado inicial "TODOS LOS AÑOS"
             select.value = 'all'; 
+            
+            // Renderizamos los componentes visuales en orden correcto
             renderSlider('all');
             mainSwiperEl.style.display = 'block';
             mainSwiperEl.style.opacity = '1';
