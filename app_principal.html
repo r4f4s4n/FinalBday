@@ -22,7 +22,7 @@
             height: 100dvh; 
         }
         
-        /* Vídeo de fondo general de la app */
+        /* Vídeo de fondo general de la app[cite: 2] */
         #app-bg-video { 
             position: absolute; 
             top: 0; 
@@ -33,28 +33,28 @@
             z-index: 0; 
         }
 
-        /* PANTALLA DE CARGA RETRO TRANSLÚCIDA */
+        /* PANTALLA DE CARGA RETRO TRANSLÚCIDA[cite: 2] */
         .arcade-loader-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100dvh;
-            /* Fondo semitransparente para ver el video de fondo correr por detrás */
+            /* Fondo semitransparente para ver el video de fondo correr por detrás[cite: 2] */
             background: rgba(0, 0, 0, 0.75); 
-            backdrop-filter: blur(3px); /* Suave desenfoque estilo cristal */
+            backdrop-filter: blur(3px); /* Suave desenfoque estilo cristal[cite: 2] */
             -webkit-backdrop-filter: blur(3px);
-            z-index: 200; /* Siempre por encima de todo */
+            z-index: 200; /* Siempre por encima de todo[cite: 2] */
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             transition: opacity 0.5s ease, visibility 0.5s ease;
-            pointer-events: all; /* Bloquea por completo clics de fondo */
+            pointer-events: all; /* Bloquea por completo clics de fondo[cite: 2] */
         }
 
         .arcade-loader-text {
-            color: #ff00ff; /* Fucsia neón */
+            color: #ff00ff; /* Fucsia neón[cite: 2] */
             font-family: 'Helvetica', sans-serif;
             font-weight: 900;
             font-size: 32px;
@@ -68,15 +68,15 @@
             to { visibility: hidden; }
         }
 
-        /* DESPLEGABLE ARCADE 8-BITS EN LA ESQUINA SUPERIOR IZQUIERDA */
+        /* DESPLEGABLE ARCADE 8-BITS EN LA ESQUINA SUPERIOR IZQUIERDA[cite: 2] */
         .arcade-select-container {
             position: absolute;
             top: 15px;
             left: 15px;
             z-index: 30; 
-            opacity: 0; /* Oculto inicialmente */
-            pointer-events: none; /* Deshabilitado inicialmente */
-            transition: opacity 0.5s ease; /* Transición suave de entrada */
+            opacity: 0; /* Oculto inicialmente[cite: 2] */
+            pointer-events: none; /* Deshabilitado inicialmente[cite: 2] */
+            transition: opacity 0.5s ease; /* Transición suave de entrada[cite: 2] */
         }
 
         .arcade-select {
@@ -100,7 +100,7 @@
             color: #ff00ff;
         }
 
-        /* DADO ARCADE BLANCO EN LA ESQUINA SUPERIOR DERECHA */
+        /* DADO ARCADE BLANCO EN LA ESQUINA SUPERIOR DERECHA[cite: 2] */
         .dice-btn {
             position: absolute;
             top: 15px;
@@ -116,10 +116,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.5s ease; /* Transición suave de entrada */
+            transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.5s ease; /* Transición suave de entrada[cite: 2] */
             box-sizing: border-box;
-            opacity: 0; /* Oculto inicialmente */
-            pointer-events: none; /* Deshabilitado inicialmente */
+            opacity: 0; /* Oculto inicialmente[cite: 2] */
+            pointer-events: none; /* Deshabilitado inicialmente[cite: 2] */
         }
 
         .dice-btn:active {
@@ -132,7 +132,7 @@
             height: 24px;
         }
 
-        /* Animación de agitación */
+        /* Animación de agitación[cite: 2] */
         .shake-dice {
             animation: dice-shake 0.5s ease-in-out;
         }
@@ -146,7 +146,7 @@
             100% { transform: rotate(0deg) scale(1); }
         }
 
-        /* CONTENEDOR DEL SWIPER */
+        /* CONTENEDOR DEL SWIPER[cite: 2] */
         .swiper {
             position: absolute;
             top: 80px;
@@ -155,13 +155,13 @@
             height: auto;
             padding: 10px 0; 
             z-index: 2;
-            display: none; /* CORRECCIÓN: Oculto por completo en el DOM durante el Cargando */
+            display: none; /* CORRECCIÓN: Oculto por completo en el DOM durante el Cargando[cite: 2] */
             opacity: 0; 
             pointer-events: none; 
             transition: opacity 0.5s ease; 
         }
 
-        /* Cada tarjeta del carrusel */
+        /* Cada tarjeta del carrusel[cite: 2] */
         .swiper-slide {
             width: 40vw;
             height: 40vw;
@@ -181,7 +181,7 @@
             cursor: pointer;
         }
 
-        /* Solo la tarjeta central/activa tiene el borde animado */
+        /* Solo la tarjeta central/activa tiene el borde animado[cite: 2] */
         .swiper-slide-active {
             border: 4px solid #ffcc00;
             animation: border-dance 2s infinite linear;
@@ -196,7 +196,7 @@
             opacity: 88%;
         }
 
-        /* CONTENEDORES LED COMPLETO */
+        /* CONTENEDORES LED COMPLETO[cite: 2] */
         .marquee-container {
             position: absolute;
             bottom: 0;
@@ -209,7 +209,7 @@
             display: flex; 
         }
 
-        /* Ocultamos el letrero LED en las tarjetas laterales */
+        /* Ocultamos el letrero LED en las tarjetas laterales[cite: 2] */
         .swiper-slide:not(.swiper-slide-active) .marquee-container {
             display: none;
         }
@@ -257,7 +257,7 @@
             100% { border-color: #ffcc00; }
         }
 
-        /* VISTA GRID DE MINIATURAS */
+        /* VISTA GRID DE MINIATURAS[cite: 2] */
         .grid-view {
             display: none; 
             position: absolute;
@@ -317,7 +317,7 @@
             object-fit: cover; 
         }
 
-        /* DIALOG DE CONFIRMACIÓN ESTILO STREET FIGHTER 8-BIT */
+        /* DIALOG DE CONFIRMACIÓN ESTILO STREET FIGHTER 8-BIT[cite: 2] */
         .arcade-dialog-overlay {
             display: none; 
             position: absolute;
@@ -404,20 +404,20 @@
     </style>
 </head>
 <body>
-    <!-- Pantalla de Carga 8-Bits Semitransparente -->
+    <!-- Pantalla de Carga 8-Bits Semitransparente[cite: 2] -->
     <div class="arcade-loader-overlay" id="arcade-loader">
         <div class="arcade-loader-text">CARGANDO...</div>
     </div>
 
     <div class="container">
-        <!-- Desplegable Retro Arcade -->
+        <!-- Desplegable Retro Arcade[cite: 2] -->
         <div class="arcade-select-container" id="select-container">
             <select class="arcade-select" id="year-select">
                 <option value="all">POR AÑO</option>
             </select>
         </div>
 
-        <!-- Botón de Dado Blanco Arcade -->
+        <!-- Botón de Dado Blanco Arcade[cite: 2] -->
         <div class="dice-btn" id="random-dice" title="¡Suerte de la noche!">
             <svg viewBox="0 0 24 24">
                 <rect x="10" y="10" width="4" height="4" fill="#000000" />
@@ -428,35 +428,35 @@
             </svg>
         </div>
 
-        <!-- Vídeo de fondo principal -->
+        <!-- Vídeo de fondo principal[cite: 2] -->
         <video autoplay muted loop playsinline id="app-bg-video">
             <source src="disco_movil.mp4" media="(max-width: 768px)">
             <source src="disco_movil.mp4" media="(min-width: 769px)">
         </video>
         
-        <!-- VISTA SLIDER (TINDER) -->
+        <!-- VISTA SLIDER (TINDER)[cite: 2] -->
         <div class="swiper" id="main-swiper">
             <div class="swiper-wrapper" id="slides-wrapper">
-                <!-- Se inyecta dinámicamente -->
+                <!-- Se inyecta dinámicamente[cite: 2] -->
             </div>
         </div>
 
-        <!-- VISTA GRID (MINIATURAS SELECCIÓN ARCADE) -->
+        <!-- VISTA GRID (MINIATURAS SELECCIÓN ARCADE)[cite: 2] -->
         <div class="grid-view" id="main-grid">
             <div class="grid-container" id="grid-wrapper">
-                <!-- Se inyectan las miniaturas aquí -->
+                <!-- Se inyectan las miniaturas aquí[cite: 2] -->
             </div>
         </div>
 
-        <!-- POPUP DIALOG DE CONFIRMACIÓN -->
+        <!-- POPUP DIALOG DE CONFIRMACIÓN[cite: 2] -->
         <div class="arcade-dialog-overlay" id="confirm-dialog">
             <div class="arcade-dialog-box">
                 <p class="arcade-dialog-text">
-                    ¿Quieres ir disfrazado de <span id="dialog-theme"></span> en <span>Cumple: El Final</span> el día 6 de diciembre?
+                    ¿Quieres ir disfrazado de <span id="dialog-theme"></span> en <span>Cumple: El Final</span> el día 6 de diciembre?[cite: 2]
                 </p>
                 <div class="arcade-dialog-buttons">
-                    <button class="arcade-btn btn-no" id="btn-no">No</button>
-                    <button class="arcade-btn btn-yes" id="btn-yes">Sí</button>
+                    <button class="arcade-btn btn-no" id="btn-no">No</button>[cite: 2]
+                    <button class="arcade-btn btn-yes" id="btn-yes">Sí</button>[cite: 2]
                 </div>
             </div>
         </div>
@@ -591,7 +591,6 @@
             loader.style.opacity = '0';
             loader.style.visibility = 'hidden';
 
-            // Revelamos y activamos el carrusel de forma fluida
             const mainSwiper = document.getElementById('main-swiper');
             mainSwiper.style.display = 'block';
             setTimeout(() => {
@@ -599,7 +598,6 @@
                 mainSwiper.style.pointerEvents = 'auto';
             }, 50);
 
-            // Desbloquear y mostrar controles superiores
             const selectContainer = document.getElementById('select-container');
             const diceBtn = document.getElementById('random-dice');
             selectContainer.style.opacity = '1';
@@ -636,8 +634,9 @@
             let mediaHTML = '';
             totalMediaToLoad++; 
     
+            // CAMBIO CLAVE: Cambiado onloadedmetadata por oncanplaythrough para asegurar descarga del MP4[cite: 2]
             if (file && file.endsWith('.mp4')) {
-                mediaHTML = `<video class="custom-media" autoplay muted loop playsinline onloadedmetadata="checkAllMediaLoaded()" onerror="checkAllMediaLoaded()" src="customs/${file}"></video>`;
+                mediaHTML = `<video class="custom-media" autoplay muted loop playsinline oncanplaythrough="checkAllMediaLoaded()" onerror="checkAllMediaLoaded()" src="customs/${file}"></video>`;
             } else {
                 mediaHTML = `<img src="customs/${file}" onload="checkAllMediaLoaded()" onerror="checkAllMediaLoaded()" alt="Custom">`;
             }
