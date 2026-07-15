@@ -599,10 +599,26 @@
     <script>
 	
 		// --- 1. BLOQUEO DE ATRÁS ---
-        history.pushState(null, null, location.href);
-        window.addEventListener('popstate', function () {
-            history.pushState(null, null, location.href);
-        });
+        (function blockBackButton() {
+            // Nº de entradas de historial "colchón". Con una sola, si el usuario
+            // pulsa Atrás varias veces seguidas y rápido, el JS no llega a
+            // reponerla a tiempo y se acaba saliendo de la página. Con un
+            // colchón de varias entradas iguales, aguanta pulsaciones repetidas
+            // mientras el listener las va reponiendo una a una.
+            const HISTORY_BUFFER = 30;
+
+            function pushDummyState() {
+                history.pushState({ appLock: true }, '', location.href);
+            }
+
+            for (let i = 0; i < HISTORY_BUFFER; i++) {
+                pushDummyState();
+            }
+
+            window.addEventListener('popstate', () => {
+                pushDummyState();
+            });
+        })();
 		
         const customsData = {
             1: { year: "2013", category: "Hospital", theme: "Enfermera sexy", file: "custom1.jpg" },
