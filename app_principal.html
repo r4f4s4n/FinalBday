@@ -92,7 +92,7 @@
             outline: none;
             cursor: pointer;
             text-shadow: 1px 1px 0px #000;
-            width: 120px;
+            width: 150px;
         }
 
         .arcade-select option {
@@ -520,7 +520,7 @@
         <!-- Desplegable Retro Arcade -->
         <div class="arcade-select-container" id="select-container">
             <select class="arcade-select" id="year-select">
-                <option value="all">POR AÑO</option>
+                <option value="all">TODOS LOS AÑOS</option>
             </select>
         </div>
 
@@ -598,6 +598,12 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script>
+        // BLOQUEO DE BOTÓN "ATRÁS" DEL NAVEGADOR Y DISPOSITIVOS
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', function () {
+            history.pushState(null, null, location.href);
+        });
+
         const customsData = {
             1: { year: "2013", category: "Hospital", theme: "Enfermera sexy", file: "custom1.jpg" },
             2: { year: "2015", category: "Paradas de Metro", theme: "Chueca esos 5", file: "custom2.png" },
@@ -712,6 +718,9 @@
         let totalMediaToLoad = 0;
         let mediaLoadedCount = 0;
         let isAppReady = false; 
+        
+        let swiper = null;
+        let currentSliderIds = [];
 
         function forceStartApp() {
             if (isAppReady) return;
@@ -723,11 +732,11 @@
             loader.style.opacity = '0';
             loader.style.visibility = 'hidden';
 
-            const mainSwiper = document.getElementById('main-swiper');
-            mainSwiper.style.display = 'block';
+            const mainSwiperEl = document.getElementById('main-swiper');
+            mainSwiperEl.style.display = 'block';
             setTimeout(() => {
-                mainSwiper.style.opacity = '1';
-                mainSwiper.style.pointerEvents = 'auto';
+                mainSwiperEl.style.opacity = '1';
+                mainSwiperEl.style.pointerEvents = 'auto';
             }, 50);
 
             const selectContainer = document.getElementById('select-container');
@@ -737,7 +746,7 @@
             diceBtn.style.opacity = '1';
             diceBtn.style.pointerEvents = 'auto';
 
-            swiper.update();
+            if(swiper) swiper.update();
         }
 
         function checkAllMediaLoaded() {
@@ -750,49 +759,87 @@
 
         setTimeout(() => {
             if (!isAppReady) {
-                console.warn("Fusible de carga activado (Timeout). Iniciando aplicación de forma forzada.");
+                console.warn("Fusible de carga activado (Timeout). Iniciando aplicación forzada.");
                 forceStartApp();
             }
         }, 4000); 
-    
-        order.forEach((id) => {
-            if (!customsData[id]) return;
-    
-            const slide = document.createElement('div');
-            slide.className = 'swiper-slide';
-            slide.setAttribute('data-id', id);
-            
-            const file = customsData[id].file || `custom${id}.png`;
-            let mediaHTML = '';
-            totalMediaToLoad++;
-    
-            if (file && file.endsWith('.mp4')) {
-                mediaHTML = `<video class="custom-media" autoplay muted loop playsinline oncanplaythrough="checkAllMediaLoaded()" onerror="checkAllMediaLoaded()" src="customs/${file}"></video>`;
-            } else {
-                mediaHTML = `<img src="customs/${file}" onload="checkAllMediaLoaded()" onerror="checkAllMediaLoaded()" alt="Custom">`;
-            }
-            
-            const textHTML = `<span>${customsData[id].year}</span> | <span>${customsData[id].theme}</span> &nbsp;&nbsp;*&nbsp;&nbsp;`;
-            
-            slide.innerHTML = `
-                ${mediaHTML}
-                <div class="marquee-container">
-                    <div class="crt-overlay"></div>
-                    <div class="marquee-text">${textHTML}</div>
-                    <div class="marquee-text" aria-hidden="true">${textHTML}</div>
-                </div>
-            `;
-            wrapper.appendChild(slide);
-        });
-    
-        const swiper = new Swiper('.swiper', {
-            slidesPerView: 'auto',      
-            centeredSlides: true,       
-            spaceBetween: 25,           
-            loop: true,                 
-            grabCursor: true,           
-        });
 
+        // INICIALIZADOR SEGURO DE SWIPER
+        function initSwiper() {
+            if (swiper) {
+                swiper.destroy(true, true);
+            }
+            swiper = new Swiper('.swiper', {
+                slidesPerView: 'auto',      
+                centeredSlides: true,       
+                spaceBetween: 25,           
+                loop: true,                 
+                grabCursor: true,           
+            });
+
+            // Reasignamos el evento click tras construir el nuevo Swiper
+            swiper.on('click', (s, event) => {
+                const clickedActiveSlide = event.target.closest('.swiper-slide-active');
+                if (clickedActiveSlide) {
+                    const customId = clickedActiveSlide.getAttribute('data-id');
+                    const selectedCustom = customsData[customId];
+                    if (selectedCustom) {
+                        dialogThemeText.textContent = selectedCustom.theme;
+                        confirmDialog.style.display = 'flex';
+                    }
+                }
+            });
+        }
+
+        // GENERADOR DINÁMICO DEL SLIDER
+        function renderSlider(filterYear) {
+            wrapper.innerHTML = '';
+            
+            if (filterYear === 'all') {
+                currentSliderIds = order;
+            } else {
+                currentSliderIds = Object.keys(customsData)
+                    .map(Number)
+                    .filter(id => customsData[id].year === filterYear);
+            }
+
+            currentSliderIds.forEach((id) => {
+                const data = customsData[id];
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                slide.setAttribute('data-id', id);
+                
+                const file = data.file || `custom${id}.png`;
+                let mediaHTML = '';
+                
+                if (!isAppReady) totalMediaToLoad++;
+        
+                if (file && file.endsWith('.mp4')) {
+                    mediaHTML = `<video class="custom-media" autoplay muted loop playsinline oncanplaythrough="checkAllMediaLoaded()" onerror="checkAllMediaLoaded()" src="customs/${file}"></video>`;
+                } else {
+                    mediaHTML = `<img src="customs/${file}" onload="checkAllMediaLoaded()" onerror="checkAllMediaLoaded()" alt="Custom">`;
+                }
+                
+                const textHTML = `<span>${data.year}</span> | <span>${data.theme}</span> &nbsp;&nbsp;*&nbsp;&nbsp;`;
+                
+                slide.innerHTML = `
+                    ${mediaHTML}
+                    <div class="marquee-container">
+                        <div class="crt-overlay"></div>
+                        <div class="marquee-text">${textHTML}</div>
+                        <div class="marquee-text" aria-hidden="true">${textHTML}</div>
+                    </div>
+                `;
+                wrapper.appendChild(slide);
+            });
+
+            initSwiper();
+        }
+
+        // Inicializamos todo por primera vez con todos los años
+        renderSlider('all');
+
+        // SELECT DE AÑOS
         const select = document.getElementById('year-select');
         const selectOptionsMap = {};
         
@@ -813,15 +860,19 @@
         const mainGridEl = document.getElementById('main-grid');
         const gridWrapper = document.getElementById('grid-wrapper');
         const diceBtn = document.getElementById('random-dice');
+        const confirmDialog = document.getElementById('confirm-dialog');
+        const dialogThemeText = document.getElementById('dialog-theme');
+        const btnNo = document.getElementById('btn-no');
+        const btnYes = document.getElementById('btn-yes');
 
         select.addEventListener('change', (e) => {
             const selectedYear = e.target.value;
 
             if (selectedYear === 'all') {
+                renderSlider('all');
                 mainGridEl.style.display = 'none';
                 mainSwiperEl.style.display = 'block';
                 diceBtn.style.display = 'flex';
-                swiper.update();
             } else {
                 mainSwiperEl.style.display = 'none';
                 diceBtn.style.display = 'none';
@@ -852,19 +903,20 @@
                     gridItem.addEventListener('click', () => {
                         const targetId = parseInt(id);
 
-                        select.value = 'all';
+                        // 1. Reconstruimos el slider SÓLO con los elementos de ese año
+                        renderSlider(selectedYear);
+
+                        // 2. Ocultamos el grid y mostramos el slider
                         mainGridEl.style.display = 'none';
                         mainSwiperEl.style.display = 'block';
-                        diceBtn.style.display = 'flex';
                         
-                        swiper.update();
-
-                        const targetSlideIndex = swiper.slides.findIndex(slide => {
-                            return parseInt(slide.getAttribute('data-id')) === targetId;
-                        });
-
-                        if (targetSlideIndex !== -1) {
-                            swiper.slideTo(targetSlideIndex, 0);
+                        // Ocultamos el dado porque estamos dentro de un año filtrado
+                        diceBtn.style.display = 'none';
+                        
+                        // 3. Calculamos la posición real dentro del array filtrado
+                        const realIndex = currentSliderIds.indexOf(targetId);
+                        if (realIndex !== -1) {
+                            swiper.slideToLoop(realIndex, 0);
                         }
                     });
                 });
@@ -874,7 +926,7 @@
         diceBtn.addEventListener('click', () => {
             diceBtn.classList.add('shake-dice');
             
-            const randomSlideIndex = Math.floor(Math.random() * order.length);
+            const randomSlideIndex = Math.floor(Math.random() * currentSliderIds.length);
             swiper.slideToLoop(randomSlideIndex, 600);
 
             setTimeout(() => {
@@ -882,29 +934,10 @@
             }, 500);
         });
 
-        const confirmDialog = document.getElementById('confirm-dialog');
-        const dialogThemeText = document.getElementById('dialog-theme');
-        const btnNo = document.getElementById('btn-no');
-        const btnYes = document.getElementById('btn-yes');
-
         const finalScreen = document.getElementById('final-screen');
         const finalPreviewBox = document.getElementById('final-preview-box');
         const btnBack = document.getElementById('btn-back');
         const bgVideo = document.getElementById('app-bg-video');
-
-        swiper.on('click', (s, event) => {
-            const clickedActiveSlide = event.target.closest('.swiper-slide-active');
-            
-            if (clickedActiveSlide) {
-                const customId = clickedActiveSlide.getAttribute('data-id');
-                const selectedCustom = customsData[customId];
-
-                if (selectedCustom) {
-                    dialogThemeText.textContent = selectedCustom.theme;
-                    confirmDialog.style.display = 'flex';
-                }
-            }
-        });
 
         btnNo.addEventListener('click', () => {
             confirmDialog.style.display = 'none';
@@ -951,7 +984,9 @@
             bgVideo.load();
             bgVideo.play().catch(() => {});
 
+            // Volvemos al estado inicial "TODOS LOS AÑOS"
             select.value = 'all'; 
+            renderSlider('all');
             mainSwiperEl.style.display = 'block';
             mainSwiperEl.style.opacity = '1';
             mainSwiperEl.style.pointerEvents = 'auto';
@@ -959,9 +994,8 @@
             document.getElementById('select-container').style.opacity = '1';
             document.getElementById('select-container').style.pointerEvents = 'auto';
             diceBtn.style.opacity = '1';
+            diceBtn.style.display = 'flex';
             diceBtn.style.pointerEvents = 'auto';
-
-            swiper.update();
         });
     </script>
 </body>
