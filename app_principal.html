@@ -6,7 +6,17 @@
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
         .container { position: relative; width: 100vw; height: 100vh; }
-        video { position: absolute; top: 0; left: 0; height: 100%; width: 100%; object-fit: cover; z-index: 0; max-width: 580px; }
+        
+        /* CORRECCIÓN DEL VÍDEO: Altura total, ancho automático y centrado */
+        video { 
+            position: absolute; 
+            top: 0; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            height: 100%; 
+            width: auto; 
+            z-index: 0; 
+        }
 
         /* Contenedor del cuadrado 1x1 con borde animado */
         .custom-card {
@@ -105,7 +115,6 @@
     </div>
 
     <script>
-        let currentIndex = 1;
         const totalImages = 4; 
         const customsData = {
             1: { year: "2013", theme: "Enfermera sexy" },
@@ -114,7 +123,7 @@
             4: { year: "2022", theme: "Gernika" }
         };
 
-        // Función para crear un array de índices [1, 2, 3, 4, 5] y barajarlo
+        // Función para crear un array de índices [1, 2, 3, 4] y barajarlo
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
