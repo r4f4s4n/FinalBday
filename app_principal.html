@@ -60,7 +60,7 @@
             position: relative;
             transition: transform 0.3s ease, border-color 0.3s ease;
             box-sizing: border-box;
-            overflow: hidden; /* Evita que el vídeo del custom se salga del recuadro */
+            overflow: hidden; 
         }
 
         /* Solo la tarjeta central/activa tiene el borde animado */
@@ -70,7 +70,7 @@
             transform: scale(1.05); 
         }
 
-        /* Estilos tanto para imágenes como para vídeos dentro de la tarjeta */
+        /* Estilos compartidos para imágenes y vídeos del custom */
         .swiper-slide img,
         .swiper-slide video.custom-media { 
             width: 100%; 
@@ -129,8 +129,9 @@
             background-size: 100% 4px;
         }
         
+        /* CORRECCIÓN DE SINTAXIS AQUÍ */
         @keyframes marquee {
-            0% { transform: translate(3d(0, 0, 0)); }
+            0% { transform: translate3d(0, 0, 0); }
             100% { transform: translate3d(-100%, 0, 0); }
         }
 
@@ -161,7 +162,7 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script>
-        // CONFIGURACIÓN: He añadido la extensión (file) para soportar mp4 o png fluidamente
+        // Recuerda ajustar aquí los nombres reales de tus archivos con su extensión
         const customsData = {
             1: { year: "2013", theme: "Enfermera sexy" },
             2: { year: "2015", theme: "Chueca esos 5" },
@@ -180,7 +181,9 @@
             15: { year: "2017", theme: "Beetlejuice" },
             16: { year: "2018", theme: "E.T." },
             17: { year: "2018", theme: "Albert Rivera cibernético" },
-            18: { year: "2017", theme: "Hora de aventuras" }
+            18: { year: "2018", theme: "Hora de aventuras" },
+            19: { year: "2018", theme: "Zombies" },
+            20: { year: "2018", theme: "Sin City" }
         };
 
         function shuffleArray(array) {
@@ -201,7 +204,7 @@
             const file = customsData[id].file;
             let mediaHTML = '';
 
-            // COMPROBACIÓN: Si el archivo termina en .mp4 renderiza etiqueta de vídeo, si no, una imagen
+            // Comprobación de formato
             if (file.endsWith('.mp4')) {
                 mediaHTML = `<video class="custom-media" autoplay muted loop playsinline src="customs/${file}"></video>`;
             } else {
