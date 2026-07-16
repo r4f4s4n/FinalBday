@@ -208,7 +208,7 @@
                     <source src="assets/videos/video_escritorio.mp4" media="(min-width: 769px)">
                 </video>
 
-                <video id="intro-transition-video" playsinline>
+                <video id="intro-transition-video" playsinline muted>
                     <source src="assets/videos/zoom_movil.mp4" media="(max-width: 768px)">
                     <source src="assets/videos/zoom_escritorio.mp4" media="(min-width: 769px)">
                 </video>
@@ -231,6 +231,10 @@
         </section>
     </div>
 
+    <audio id="global-bg-music" preload="auto" loop>
+        <source src="assets/videos/interior_student_cafe.mp3" type="audio/mpeg">
+    </audio>
+
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script>
         const progressFill = document.getElementById('progress-fill');
@@ -243,11 +247,13 @@
         const introOverlay = document.getElementById('intro-overlay');
         const introBgVideo = document.getElementById('intro-bg-video');
         const introTransitionVideo = document.getElementById('intro-transition-video');
+        const globalBgMusic = document.getElementById('global-bg-music');
         const btnStart = document.getElementById('btn-start');
 
         let principalInitPromise = null;
         let principalAppReady = false;
         let appReady = false;
+        const PRELOAD_TIMEOUT_MS = 8000;
 
         function normalizeComponentMarkup(markup) {
             return markup.replace(/\.\.\/assets\//g, 'assets/');
@@ -290,6 +296,16 @@
             }
             const progressbar = document.querySelector('.progress-wrap');
             progressbar.setAttribute('aria-valuenow', String(percent));
+        }
+
+        function startGlobalBackgroundMusic() {
+            if (!globalBgMusic) return;
+            globalBgMusic.loop = true;
+            globalBgMusic.volume = 1;
+            globalBgMusic.play().catch(() => {
+                // Si el navegador bloquea la reproducción automática, se
+                // volverá a intentar tras la interacción del usuario.
+            });
         }
 
         function isValidResourcePath(path) {
@@ -365,6 +381,7 @@
                 new URL('assets/videos/video_escritorio.mp4', location.href).href,
                 new URL('assets/videos/zoom_movil.mp4', location.href).href,
                 new URL('assets/videos/zoom_escritorio.mp4', location.href).href,
+                new URL('assets/videos/interior_student_cafe.mp3', location.href).href,
                 new URL('pages/app_principal.html', location.href).href
             ]);
 
@@ -411,8 +428,22 @@
             const parsed = new URL(url);
             const pathname = parsed.pathname.toLowerCase();
 
-            if (pathname.endsWith('.mp4') || pathname.endsWith('.webm') || pathname.endsWith('.ogg')) {
+            const withTimeout = (promise, timeoutMs = PRELOAD_TIMEOUT_MS) => {
                 return new Promise((resolve) => {
+                    const timeoutId = setTimeout(() => resolve(), timeoutMs);
+
+                    promise.then(() => {
+                        clearTimeout(timeoutId);
+                        resolve();
+                    }).catch(() => {
+                        clearTimeout(timeoutId);
+                        resolve();
+                    });
+                });
+            };
+
+            if (pathname.endsWith('.mp4') || pathname.endsWith('.webm') || pathname.endsWith('.ogg')) {
+                return withTimeout(new Promise((resolve) => {
                     const video = document.createElement('video');
                     video.preload = 'auto';
                     video.muted = true;
@@ -424,7 +455,7 @@
 
                     video.src = url;
                     video.load();
-                });
+                }));
             }
 
             if (
@@ -435,15 +466,15 @@
                 pathname.endsWith('.webp') ||
                 pathname.endsWith('.ico')
             ) {
-                return new Promise((resolve) => {
+                return withTimeout(new Promise((resolve) => {
                     const img = new Image();
                     img.onload = () => resolve();
                     img.onerror = () => resolve();
                     img.src = url;
-                });
+                }));
             }
 
-            await fetch(url, { cache: 'no-store' });
+            return withTimeout(fetch(url, { cache: 'no-store' }));
         }
 
         async function preloadAllResources(resourceUrls) {
@@ -557,6 +588,7 @@
 
         function transitionToPrincipal() {
             if (!principalAppReady) return;
+            startGlobalBackgroundMusic();
             principalView.classList.add('is-active');
             introView.classList.remove('is-active');
         }
@@ -566,6 +598,8 @@
             introOverlay.style.display = 'none';
             introBgVideo.style.display = 'none';
             introTransitionVideo.style.display = 'block';
+            introTransitionVideo.muted = true;
+            introTransitionVideo.volume = 0;
             introTransitionVideo.play().catch(() => {});
 
             setTimeout(() => {

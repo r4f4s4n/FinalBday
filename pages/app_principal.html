@@ -119,7 +119,7 @@
             outline: none;
             cursor: pointer;
             text-shadow: 1px 1px 0px #000;
-            width: 120px;
+            width: 250px;
         }
 
         .arcade-select option {
@@ -996,6 +996,49 @@
             prev.pause(); // la capa que queda oculta no necesita seguir sonando/gastando recursos
         }
 
+        // Libera el contenido cargado en un <video> para que no conserve el
+        // último fotograma ni mantenga el buffer en memoria cuando ya no se usa.
+        function clearBgVideo(videoEl) {
+            videoEl.pause();
+            videoEl.removeAttribute('src');
+            videoEl.load();
+        }
+
+        function preloadTransitionStartVideo() {
+            if (standbyBgVideo === bgVideoB) {
+                preloadStandbyBgVideo(BG_VIDEO_TRANSITION);
+            }
+        }
+
+        function resetBgLayersToOriginalInstant() {
+            const originalUrl = new URL(BG_VIDEO_ORIGINAL, location.href).href;
+            const activeSrc = activeBgVideo.currentSrc || '';
+
+            if (activeSrc.indexOf(originalUrl) !== -1 && activeBgVideo.classList.contains('is-active')) {
+                return;
+            }
+
+            bgTransitionToken += 1;
+
+            clearBgVideo(bgVideoA);
+            clearBgVideo(bgVideoB);
+
+            bgVideoA.src = BG_VIDEO_ORIGINAL;
+            bgVideoA.loop = true;
+            bgVideoA.muted = true;
+            bgVideoA.playsInline = true;
+            bgVideoA.classList.add('is-active');
+
+            bgVideoB.classList.remove('is-active');
+
+            activeBgVideo = bgVideoA;
+            standbyBgVideo = bgVideoB;
+
+            bgVideoA.load();
+            bgVideoA.play().catch(() => {});
+            preloadTransitionStartVideo();
+        }
+
         // Precarga `src` en la capa oculta (sin activarla todavía).
         function preloadStandbyBgVideo(src) {
             standbyBgVideo.src = src;
@@ -1038,6 +1081,7 @@
         // terminar bar1, crossfade a bar2 (loop) y sólo entonces se revela el
         // texto/miniatura finales.
         function playBgTransition() {
+            resetBgLayersToOriginalInstant();
             const myToken = ++bgTransitionToken;
             hideFinalContent();
 
@@ -1071,8 +1115,17 @@
         function restoreOriginalBgVideo() {
             const myToken = ++bgTransitionToken;
             hideFinalContent();
-            transitionBgVideoTo(BG_VIDEO_ORIGINAL, { loop: true, token: myToken });
+            transitionBgVideoTo(BG_VIDEO_ORIGINAL, {
+                loop: true,
+                token: myToken,
+                onActive: () => {
+                    clearBgVideo(standbyBgVideo);
+                    preloadTransitionStartVideo();
+                }
+            });
         }
+
+        preloadTransitionStartVideo();
 
         swiper.on('click', (s, event) => {
             const clickedActiveSlide = event.target.closest('.swiper-slide-active');
