@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Final Bday</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="assets/favicon/favicon.ico">
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
         .container { position: relative; width: 100vw; height: 100vh; }
@@ -33,13 +33,13 @@
 <body>
     <div class="container">
         <video autoplay muted loop playsinline id="bg-video">
-            <source src="video_movil.mp4" media="(max-width: 768px)">
-            <source src="video_escritorio.mp4" media="(min-width: 769px)">
+            <source src="assets/videos/video_movil.mp4" media="(max-width: 768px)">
+            <source src="assets/videos/video_escritorio.mp4" media="(min-width: 769px)">
         </video>
         
         <video id="transition-video" playsinline>
-            <source src="zoom_movil.mp4" media="(max-width: 768px)">
-            <source src="zoom_escritorio.mp4" media="(min-width: 769px)">
+            <source src="assets/videos/zoom_movil.mp4" media="(max-width: 768px)">
+            <source src="assets/videos/zoom_escritorio.mp4" media="(min-width: 769px)">
         </video>
 
         <div class="overlay" id="overlay">
@@ -60,7 +60,7 @@
 
             // 3. Esperar 7 segundos y redirigir
             setTimeout(() => {
-                window.location.href = "app_principal.html";
+                window.location.href = "pages/app_principal.html";
             }, 7000);
         }
     </script>

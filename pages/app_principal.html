@@ -526,94 +526,27 @@
     </style>
 </head>
 <body>
-    <!-- Pantalla de Carga 8-Bits Semitransparente -->
-    <div class="arcade-loader-overlay" id="arcade-loader">
-        <div class="arcade-loader-text">CARGANDO...</div>
-    </div>
-
     <div class="container">
-        <!-- Desplegable Retro Arcade -->
-        <div class="arcade-select-container" id="select-container">
-            <select class="arcade-select" id="year-select">
-                <option value="all">TODOS LOS AÑOS</option>
-            </select>
-        </div>
-
-        <!-- Botón de Dado Blanco Arcade -->
-        <div class="dice-btn" id="random-dice" title="¡Suerte de la noche!">
-            <svg viewBox="0 0 24 24">
-                <rect x="10" y="10" width="4" height="4" fill="#000000" />
-                <rect x="4" y="4" width="4" height="4" fill="#000000" />
-                <rect x="16" y="4" width="4" height="4" fill="#000000" />
-                <rect x="4" y="16" width="4" height="4" fill="#000000" />
-                <rect x="16" y="16" width="4" height="4" fill="#000000" />
-            </svg>
-        </div>
-
-        <!-- Vídeo de fondo principal (dos capas para crossfade sin cortes) -->
-        <video class="bg-video is-active" autoplay muted loop playsinline id="app-bg-video">
-            <source src="disco_movil.mp4" id="bg-video-source">
-        </video>
-        <video class="bg-video" muted playsinline id="app-bg-video-alt"></video>
-        
-        <!-- VISTA SLIDER (TINDER) -->
-        <div class="swiper" id="main-swiper">
-            <div class="swiper-wrapper" id="slides-wrapper">
-                <!-- Se inyecta dinámicamente -->
-            </div>
-        </div>
-
-        <!-- VISTA GRID (MINIATURAS SELECCIÓN ARCADE) -->
-        <div class="grid-view" id="main-grid">
-            <div class="grid-container" id="grid-wrapper">
-                <!-- Se inyectan las miniaturas aquí -->
-            </div>
-        </div>
-
-        <!-- POPUP DIALOG DE CONFIRMACIÓN -->
-        <div class="arcade-dialog-overlay" id="confirm-dialog">
-            <div class="arcade-dialog-box">
-                <p class="arcade-dialog-text">
-                    ¿Quieres ir disfrazado de <span id="dialog-theme"></span> en <span>Cumple: El Final</span> el día 6 de diciembre?
-                </p>
-                <div class="arcade-dialog-buttons">
-                    <button class="arcade-btn btn-no" id="btn-no">No</button>
-                    <button class="arcade-btn btn-yes" id="btn-yes">Sí</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- PANTALLA PAGO / PETAZO FINAL -->
-        <div class="final-screen-overlay" id="final-screen">
-            <!-- Botón de ir para atrás estilo 8 bits -->
-            <div class="arcade-back-container">
-                <button class="arcade-back-btn" id="btn-back">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block; vertical-align:middle;">
-                        <path d="M20 11H7.83L13.42 5.41L12 4L4 12L12 20L13.41 18.59L7.83 13H20V11Z" fill="#000000"/>
-                    </svg>
-                    ATRÁS
-                </button>
-            </div>
-
-            <!-- Contenedor Miniatura del media del Disfraz -->
-            <div class="final-preview-container" id="final-preview-box">
-                <!-- Se inyecta dinámicamente -->
-            </div>
-
-            <!-- Texto Arcade Informativo -->
-            <div class="final-text-box" id="final-text-box">
-                ¡LOS VAMOS A PETAR DEL <span class="highlight">4 AL 8 DE DICIEMBRE</span> EN CAN VIDAL RURAL!<br><br>
-                SON <span class="highlight">250€</span>, ME LOS PUEDES ENVIAR A:
-                <span class="iban">ES86 8547 8897 5203 9999</span><br>
-                ¡GRACIAS!
-            </div>
-        </div>
+        <div data-component="loader"></div>
+        <div data-component="controls"></div>
+        <div data-component="media-shell"></div>
+        <div data-component="confirm-dialog"></div>
+        <div data-component="final-screen"></div>
     </div>
 
     <!-- Script de Swiper.js -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="../components/loader.js"></script>
 
     <script>
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadComponents({
+                '[data-component="loader"]': '../components/app-loader.html',
+                '[data-component="controls"]': '../components/app-controls.html',
+                '[data-component="media-shell"]': '../components/app-media-shell.html',
+                '[data-component="confirm-dialog"]': '../components/app-confirm-dialog.html',
+                '[data-component="final-screen"]': '../components/app-final-screen.html'
+            });
 	
 		// --- 1. BLOQUEO DE ATRÁS ---
         (function blockBackButton() {
@@ -831,15 +764,9 @@
 
             if (trackLoad) totalMediaToLoad++;
 
-            const loadAttrs = trackLoad
-                ? (isVideo
-                    ? `onloadeddata="checkAllMediaLoaded()" onerror="checkAllMediaLoaded()"`
-                    : `onload="checkAllMediaLoaded()" onerror="checkAllMediaLoaded()"`)
-                : '';
-
             const mediaHTML = isVideo
-                ? `<video class="custom-media" autoplay muted loop playsinline ${loadAttrs} src="customs/${file}"></video>`
-                : `<img src="customs/${file}" ${loadAttrs} alt="Custom">`;
+                ? `<video class="custom-media" autoplay muted loop playsinline src="../assets/customs/${file}"></video>`
+                : `<img src="../assets/customs/${file}" alt="Custom">`;
 
             const textHTML = `<span>${data.year}</span> | <span>${data.theme}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
 
@@ -851,6 +778,31 @@
                     <div class="marquee-text" aria-hidden="true">${textHTML}</div>
                 </div>
             `;
+
+            if (trackLoad) {
+                const mediaEl = slide.querySelector(isVideo ? 'video.custom-media' : 'img');
+                if (mediaEl) {
+                    const handleMediaLoad = () => {
+                        if (mediaEl.dataset.loaded === 'true') return;
+                        mediaEl.dataset.loaded = 'true';
+                        checkAllMediaLoaded();
+                    };
+
+                    mediaEl.addEventListener('load', handleMediaLoad);
+                    mediaEl.addEventListener('error', handleMediaLoad);
+                    mediaEl.addEventListener('loadeddata', handleMediaLoad);
+                    mediaEl.addEventListener('canplay', handleMediaLoad);
+
+                    if (isVideo) {
+                        if (mediaEl.readyState >= 2) {
+                            handleMediaLoad();
+                        }
+                    } else if (mediaEl.complete) {
+                        handleMediaLoad();
+                    }
+                }
+            }
+
             return slide;
         }
 
@@ -974,9 +926,9 @@
                     let mediaHTML = '';
 
                     if (file && file.endsWith('.mp4')) {
-                        mediaHTML = `<video autoplay muted loop playsinline src="customs/${file}"></video>`;
+                        mediaHTML = `<video autoplay muted loop playsinline src="../assets/customs/${file}"></video>`;
                     } else {
-                        mediaHTML = `<img src="customs/${file}" alt="Custom">`;
+                        mediaHTML = `<img src="../assets/customs/${file}" alt="Custom">`;
                     }
 
                     gridItem.innerHTML = mediaHTML;
@@ -1029,9 +981,9 @@
         let activeBgVideo = bgVideoA;
         let standbyBgVideo = bgVideoB;
 
-        const BG_VIDEO_ORIGINAL = 'disco_movil.mp4';
-        const BG_VIDEO_TRANSITION = 'bar1-movil.mp4';
-        const BG_VIDEO_FINAL = 'bar2-movil.mp4';
+        const BG_VIDEO_ORIGINAL = '../assets/videos/disco_movil.mp4';
+        const BG_VIDEO_TRANSITION = '../assets/videos/bar1-movil.mp4';
+        const BG_VIDEO_FINAL = '../assets/videos/bar2-movil.mp4';
 
         // Identifica la secuencia de transición de fondo en curso. Los callbacks
         // async (canplay/ended/playing) comprueban que su token siga siendo el
@@ -1215,6 +1167,7 @@
             diceBtn.style.pointerEvents = 'auto';
 
             swiper.update();
+        });
         });
     </script>
 </body>
