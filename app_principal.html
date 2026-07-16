@@ -996,6 +996,40 @@
         const finalPreviewBox = document.getElementById('final-preview-box');
         const btnBack = document.getElementById('btn-back');
         const bgVideo = document.getElementById('app-bg-video');
+        const BG_VIDEO_ORIGINAL = 'disco_movil.mp4';
+        const BG_VIDEO_TRANSITION = 'bar1-movil.mp4';
+        const BG_VIDEO_FINAL = 'bar2-movil.mp4';
+
+        // Cuando termina de reproducirse el vídeo de transición (bar1),
+        // se deja como fondo el segundo vídeo (bar2) en loop.
+        function onBgTransitionEnded() {
+            bgVideo.removeEventListener('ended', onBgTransitionEnded);
+            bgVideo.loop = true;
+            bgVideo.src = BG_VIDEO_FINAL;
+            bgVideo.load();
+            bgVideo.play().catch(() => {});
+        }
+
+        // Al confirmar el disfraz: se reproduce una vez el vídeo de transición
+        // y, al acabar, se queda de fondo el segundo vídeo.
+        function playBgTransition() {
+            bgVideo.removeEventListener('ended', onBgTransitionEnded);
+            bgVideo.loop = false;
+            bgVideo.src = BG_VIDEO_TRANSITION;
+            bgVideo.load();
+            bgVideo.play().catch(e => console.log("Auto-play prevenido:", e));
+            bgVideo.addEventListener('ended', onBgTransitionEnded);
+        }
+
+        // Al pulsar "Atrás": se cancela cualquier transición pendiente y se
+        // recupera el vídeo de fondo original en loop.
+        function restoreOriginalBgVideo() {
+            bgVideo.removeEventListener('ended', onBgTransitionEnded);
+            bgVideo.loop = true;
+            bgVideo.src = BG_VIDEO_ORIGINAL;
+            bgVideo.load();
+            bgVideo.play().catch(() => {});
+        }
 
         swiper.on('click', (s, event) => {
             const clickedActiveSlide = event.target.closest('.swiper-slide-active');
@@ -1025,9 +1059,7 @@
             diceBtn.style.opacity = '0';
             diceBtn.style.pointerEvents = 'none';
 
-            bgVideo.src = "disco_final.mp4";
-            bgVideo.load(); 
-            bgVideo.play().catch(e => console.log("Auto-play prevenido:", e));
+            playBgTransition();
 
             const activeSlide = document.querySelector('.swiper-slide-active');
             if (activeSlide) {
@@ -1052,9 +1084,7 @@
         btnBack.addEventListener('click', () => {
             finalScreen.style.display = 'none';
 
-            bgVideo.src = "disco_movil.mp4";
-            bgVideo.load();
-            bgVideo.play().catch(() => {});
+            restoreOriginalBgVideo();
 
             select.value = 'all'; 
             if (currentSwiperIds !== order) {
