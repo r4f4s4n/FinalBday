@@ -466,6 +466,12 @@
             text-shadow: 2px 2px 0px #000000;
             text-transform: uppercase;
             margin-bottom: 0;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        .final-text-box.is-visible {
+            opacity: 1;
         }
 
         .final-text-box span.highlight {
@@ -496,7 +502,12 @@
             align-items: center;
             overflow: hidden;
             box-sizing: border-box;
-            margin-top: 70px;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        .final-preview-container.is-visible {
+            opacity: 1;
         }
 
         .final-preview-container img,
@@ -582,7 +593,7 @@
             </div>
 
             <!-- Texto Arcade Informativo -->
-            <div class="final-text-box">
+            <div class="final-text-box" id="final-text-box">
                 ¡LOS VAMOS A PETAR DEL <span class="highlight">4 AL 8 DE DICIEMBRE</span> EN CAN VIDAL RURAL!<br><br>
                 SON <span class="highlight">250€</span>, ME LOS PUEDES ENVIAR A:
                 <span class="iban">ES86 8547 8897 5203 9999</span><br>
@@ -1003,26 +1014,51 @@
 
         const finalScreen = document.getElementById('final-screen');
         const finalPreviewBox = document.getElementById('final-preview-box');
+        const finalTextBox = document.getElementById('final-text-box');
         const btnBack = document.getElementById('btn-back');
         const bgVideo = document.getElementById('app-bg-video');
         const BG_VIDEO_ORIGINAL = 'disco_movil.mp4';
         const BG_VIDEO_TRANSITION = 'bar1-movil.mp4';
         const BG_VIDEO_FINAL = 'bar2-movil.mp4';
 
+        // Oculta el texto y la miniatura final (estado inicial, antes de que
+        // arranque el vídeo bar2).
+        function hideFinalContent() {
+            finalTextBox.classList.remove('is-visible');
+            finalPreviewBox.classList.remove('is-visible');
+        }
+
+        // Los revela con un desvanecido (fade-in vía CSS transition).
+        function revealFinalContent() {
+            finalTextBox.classList.add('is-visible');
+            finalPreviewBox.classList.add('is-visible');
+        }
+
         // Cuando termina de reproducirse el vídeo de transición (bar1),
-        // se deja como fondo el segundo vídeo (bar2) en loop.
+        // se deja como fondo el segundo vídeo (bar2) en loop. El texto y la
+        // miniatura no se muestran hasta que bar2 empieza a reproducirse.
         function onBgTransitionEnded() {
             bgVideo.removeEventListener('ended', onBgTransitionEnded);
             bgVideo.loop = true;
             bgVideo.src = BG_VIDEO_FINAL;
             bgVideo.load();
-            bgVideo.play().catch(() => {});
+
+            bgVideo.addEventListener('playing', revealFinalContent, { once: true });
+
+            const playPromise = bgVideo.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(() => {
+                    // Si el autoplay falla, no dejamos el contenido oculto para siempre
+                    revealFinalContent();
+                });
+            }
         }
 
         // Al confirmar el disfraz: se reproduce una vez el vídeo de transición
         // y, al acabar, se queda de fondo el segundo vídeo.
         function playBgTransition() {
             bgVideo.removeEventListener('ended', onBgTransitionEnded);
+            bgVideo.removeEventListener('playing', revealFinalContent);
             bgVideo.loop = false;
             bgVideo.src = BG_VIDEO_TRANSITION;
             bgVideo.load();
@@ -1034,10 +1070,12 @@
         // recupera el vídeo de fondo original en loop.
         function restoreOriginalBgVideo() {
             bgVideo.removeEventListener('ended', onBgTransitionEnded);
+            bgVideo.removeEventListener('playing', revealFinalContent);
             bgVideo.loop = true;
             bgVideo.src = BG_VIDEO_ORIGINAL;
             bgVideo.load();
             bgVideo.play().catch(() => {});
+            hideFinalContent();
         }
 
         swiper.on('click', (s, event) => {
@@ -1068,6 +1106,7 @@
             diceBtn.style.opacity = '0';
             diceBtn.style.pointerEvents = 'none';
 
+            hideFinalContent();
             playBgTransition();
 
             const activeSlide = document.querySelector('.swiper-slide-active');
