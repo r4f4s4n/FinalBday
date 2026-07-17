@@ -331,11 +331,13 @@
         }
 
         function startIntroBirdsMusic() {
-            if (!introBgBirds || !introBirdsReady) return;
+            if (!introBgBirds || !introBirdsReady || introBirdsStarted) return;
             introBgBirds.loop = true;
             introBgBirds.volume = 1;
             introBgBirds.play().then(() => {
                 introBirdsStarted = true;
+                document.removeEventListener('pointerdown', unlockIntroBirdsOnFirstInteraction);
+                document.removeEventListener('keydown', unlockIntroBirdsOnFirstInteraction);
             }).catch(() => {
                 // Puede bloquearse hasta interacción del usuario.
             });
@@ -516,15 +518,26 @@
             if (pathname.endsWith('.mp3') || pathname.endsWith('.wav') || pathname.endsWith('.m4a')) {
                 return withTimeout(new Promise((resolve) => {
                     if (isIntroBirdsFile && introBgBirds) {
+                        let settled = false;
                         const finish = () => {
+                            if (settled) return;
+                            settled = true;
                             introBirdsReady = true;
                             startIntroBirdsMusic();
                             resolve();
                         };
 
                         introBgBirds.preload = 'auto';
+                        introBgBirds.addEventListener('loadeddata', finish, { once: true });
+                        introBgBirds.addEventListener('canplay', finish, { once: true });
                         introBgBirds.addEventListener('canplaythrough', finish, { once: true });
                         introBgBirds.addEventListener('error', finish, { once: true });
+
+                        if (introBgBirds.readyState >= 3) {
+                            finish();
+                            return;
+                        }
+
                         introBgBirds.load();
                         return;
                     }
@@ -682,8 +695,8 @@
 
         async function boot() {
             try {
-                document.addEventListener('pointerdown', unlockIntroBirdsOnFirstInteraction, { once: true });
-                document.addEventListener('keydown', unlockIntroBirdsOnFirstInteraction, { once: true });
+                document.addEventListener('pointerdown', unlockIntroBirdsOnFirstInteraction);
+                document.addEventListener('keydown', unlockIntroBirdsOnFirstInteraction);
                 updateProgress(0, 1, 'Analizando recursos de intro y principal...');
                 const resources = await discoverResources();
 
