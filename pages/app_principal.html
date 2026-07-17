@@ -222,6 +222,24 @@
             opacity: 88%;
         }
 
+        .winner-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 44px;
+            height: 44px;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .winner-badge img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 1;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55));
+        }
+
         /* CONTENEDORES LED COMPLETO */
         .marquee-container {
             position: absolute;
@@ -604,19 +622,19 @@
         })();
 		
         const customsData = {
-            1: { year: "2013", category: "Hospital", theme: "Enfermera sexy", file: "custom1.jpg" },
+            1: { year: "2013", category: "Hospital", theme: "Enfermera sexy", file: "custom1.jpg", isWinner: true },
             2: { year: "2014", category: "Paradas de Metro", theme: "Chueca esos 5", file: "custom2.png" },
             3: { year: "2023", category: "Tribus urbanas", theme: "Jubilada", file: "custom3.jpg" },
-            4: { year: "2022", category: "La Historia", theme: "Gernika", file: "custom4.png" },
+            4: { year: "2022", category: "La Historia", theme: "Gernika", file: "custom4.png", isWinner: true },
             5: { year: "2013", category: "Hospital", theme: "Manicomio", file: "custom5.png" },
-            6: { year: "2015", category: "Los Grammys", theme: "Kurt Cobain", file: "custom6.png" },
+            6: { year: "2015", category: "Los Grammys", theme: "Kurt Cobain", file: "custom6.png", isWinner: true },
             7: { year: "2015", category: "Los Grammys", theme: "Britney Spears", file: "custom7.png" },
             8: { year: "2015", category: "Los Grammys", theme: "Freddy Mercury", file: "custom8.png" },
             9: { year: "2015", category: "Los Grammys", theme: "La Pantoja", file: "custom9.png" },
             10: { year: "2015", category: "Los Grammys", theme: "Aretha Franklin", file: "custom10.png" },
-            11: { year: "2014", category: "Paradas de Metro", theme: "Havenido de América", file: "custom11.png" },
-            12: { year: "2017", category: "Películas", theme: "Genio", file: "custom12.png" },
-            13: { year: "2017", category: "Películas", theme: "Aladdín", file: "custom13.png" },
+            11: { year: "2014", category: "Paradas de Metro", theme: "Havenido de América", file: "custom11.png", isWinner: true },
+            12: { year: "2017", category: "Películas", theme: "Genio", file: "custom12.png", isWinner: true },
+            13: { year: "2017", category: "Películas", theme: "Aladdín", file: "custom13.png", isWinner: true },
             14: { year: "2017", category: "Películas", theme: "Darla (Buscando a Nemo)", file: "custom14.png" },
             15: { year: "2017", category: "Películas", theme: "Beetlejuice", file: "custom15.png" },
             16: { year: "2018", category: "Ciencia ficción", theme: "Elliot de E.T.", file: "custom16.png" },
@@ -627,18 +645,18 @@
             21: { year: "2018", category: "Ciencia ficción", theme: "Thanos", file: "custom21.png" },
             22: { year: "2018", category: "Ciencia ficción", theme: "Leeloo Dallas & Sean Young", file: "custom22.png" },
             23: { year: "2018", category: "Ciencia ficción", theme: "Men in Black", file: "custom23.png" },
-            24: { year: "2018", category: "Ciencia ficción", theme: "Niño Up & La Increíble", file: "custom24.png" },
+            24: { year: "2018", category: "Ciencia ficción", theme: "Niño Up & La Increíble", file: "custom24.png", isWinner: true },
             25: { year: "2019", category: "Década 2010", theme: "Kim Jong-un", file: "custom25.png" },
             26: { year: "2019", category: "Década 2010", theme: "El Yihadista cordobés", file: "custom26.png" },
             27: { year: "2019", category: "Década 2010", theme: "Contaminación de los mares", file: "custom27.png" },
-            28: { year: "2019", category: "Década 2010", theme: "Beyoncé", file: "custom28.png" },
+            28: { year: "2019", category: "Década 2010", theme: "Beyoncé", file: "custom28.png", isWinner: true },
             29: { year: "2019", category: "Década 2010", theme: "J Balvin", file: "custom29.png" },
             30: { year: "2019", category: "Década 2010", theme: "La Reina y las infantas", file: "custom30.png" },
             31: { year: "2019", category: "Década 2010", theme: "Carmena y los Reyes", file: "custom31.png" },
             32: { year: "2019", category: "Década 2010", theme: "FEMEN", file: "custom32.png" },
             33: { year: "2021", category: "La Tele", theme: "Burbujitas Freixenet", file: "custom33.png" },
             34: { year: "2021", category: "La Tele", theme: "Quimi & Valle", file: "custom34.png" },
-            35: { year: "2021", category: "La Tele", theme: "Betty la Fea", file: "custom35.png" },
+            35: { year: "2021", category: "La Tele", theme: "Betty la Fea", file: "custom35.png", isWinner: true },
             36: { year: "2021", category: "La Tele", theme: "Hermanas Baptisterio romano del siglo primero", file: "custom36.png" },
             37: { year: "2021", category: "La Tele", theme: "Grand Prix", file: "custom37.png" },
             38: { year: "2021", category: "La Tele", theme: "Félix Rodríguez de la Fuente", file: "custom38.png" },
@@ -653,8 +671,8 @@
             47: { year: "2022", category: "La Historia", theme: "Amadeo de Cebolla", file: "custom47.png" },
             48: { year: "2022", category: "La Historia", theme: "La batalla de Stalingrado", file: "custom48.png" },
             49: { year: "2022", category: "La Historia", theme: "Da Vinci & la Mona Lisa", file: "custom49.png" },
-            50: { year: "2022", category: "La Historia", theme: "Templarios", file: "custom50.png" },
-            51: { year: "2022", category: "La Historia", theme: "Torres Gemelas", file: "custom51.mp4" },			
+            50: { year: "2022", category: "La Historia", theme: "Templario (Pablo Pedro-Pedro-Pedro)", file: "custom50.png" },
+            51: { year: "2022", category: "La Historia", theme: "Torres Gemelas", file: "custom51.mp4", isWinner: true },			
             52: { year: "2022", category: "La Historia", theme: "Torquemada (La Inquisición)", file: "custom52.png" },
             53: { year: "2022", category: "La Historia", theme: "Bruja", file: "custom53.png" },
             54: { year: "2023", category: "Tribus urbanas", theme: "Facha", file: "custom54.png" },
@@ -667,7 +685,7 @@
             61: { year: "2023", category: "Tribus urbanas", theme: "Técnico de emergencias", file: "custom61.png" },
             62: { year: "2023", category: "Tribus urbanas", theme: "Hippie", file: "custom62.png" },
             63: { year: "2023", category: "Tribus urbanas", theme: "Porretas", file: "custom63.png" },
-            64: { year: "2023", category: "Tribus urbanas", theme: "Tanoréxica", file: "custom64.jpg" },
+            64: { year: "2023", category: "Tribus urbanas", theme: "Tanoréxica", file: "custom64.jpg", isWinner: true },
             65: { year: "2023", category: "Tribus urbanas", theme: "Cani", file: "custom65.mp4" },
             66: { year: "2024", category: "Navidad", theme: "Paje", file: "custom66.png" },
             67: { year: "2024", category: "Navidad", theme: "Muñeco de nieve", file: "custom67.png" },
@@ -680,7 +698,7 @@
             74: { year: "2024", category: "Navidad", theme: "El tío del pollón", file: "custom74.png" },
             75: { year: "2024", category: "Navidad", theme: "Luces de Vigo", file: "custom75.png" },
             76: { year: "2024", category: "Navidad", theme: "Abelén Castores", file: "custom76.png" },
-            77: { year: "2024", category: "Navidad", theme: "Solo en casa", file: "custom77.png" },
+            77: { year: "2024", category: "Navidad", theme: "Solo en casa", file: "custom77.png", isWinner: true },
             78: { year: "2024", category: "Navidad", theme: "El Cascanueces", file: "custom78.png" },
             79: { year: "2024", category: "Navidad", theme: "El Grinch", file: "custom79.png" },
             80: { year: "2024", category: "Navidad", theme: "Acosador", file: "custom80.mp4" },
@@ -699,7 +717,7 @@
             93: { year: "2025", category: "Dibujitos", theme: "Inspectores Gadget", file: "custom93.png" },
             94: { year: "2025", category: "Dibujitos", theme: "Gru Princesa", file: "custom94.png" },
             95: { year: "2025", category: "Dibujitos", theme: "Frozen", file: "custom95.png" },
-            96: { year: "2025", category: "Dibujitos", theme: "HIM", file: "custom96.png" },
+            96: { year: "2025", category: "Dibujitos", theme: "HIM", file: "custom96.png", isWinner: true },
             97: { year: "2025", category: "Dibujitos", theme: "Maestro Mutenroi", file: "custom97.png" },
             98: { year: "2013", category: "Hospital", theme: "Dr. House", file: "custom98.png" },
             99: { year: "2014", category: "Paradas de Metro", theme: "Barajas", file: "custom99.png" },
@@ -722,7 +740,8 @@
             116: { year: "2022", category: "La Historia", theme: "El Arca de Noé", file: "custom116.png" },
             117: { year: "2023", category: "Tribus urbanas", theme: "Marc con ropa juvenil", file: "custom117.png" },
             118: { year: "2019", category: "Década 2010", theme: "El Ogro de la droga", file: "custom118.png" },
-            119: { year: "2022", category: "La Historia", theme: "Napoleón Malaparte", file: "custom119.png" }
+            119: { year: "2022", category: "La Historia", theme: "Napoleón Malaparte", file: "custom119.png" },
+            120: { year: "2024", category: "Navidad", theme: "Camella", file: "custom120.png" }
         };
 
         function shuffleArray(array) {
@@ -772,11 +791,16 @@
 
             const mediaHTML = isVideo
                 ? `<video class="custom-media" autoplay muted loop playsinline src="../assets/customs/${file}"></video>`
-                : `<img src="../assets/customs/${file}" alt="Custom">`;
+                : `<img class="custom-main-image" src="../assets/customs/${file}" alt="Custom">`;
+
+            const winnerBadgeHTML = data.isWinner
+                ? '<div class="winner-badge"><img src="../assets/favicon/torfeo.png" alt="Ganador"></div>'
+                : '';
 
             const textHTML = `<span>${data.year}</span> | <span>${data.theme}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
 
             slide.innerHTML = `
+                ${winnerBadgeHTML}
                 ${mediaHTML}
                 <div class="marquee-container">
                     <div class="crt-overlay"></div>
@@ -1162,7 +1186,7 @@
 
             const activeSlide = document.querySelector('.swiper-slide-active');
             if (activeSlide) {
-                const activeMedia = activeSlide.querySelector('.custom-media') || activeSlide.querySelector('img');
+                const activeMedia = activeSlide.querySelector('.custom-media, .custom-main-image');
                 if (activeMedia) {
                     finalPreviewBox.innerHTML = '';
                     const clonedMedia = activeMedia.cloneNode(true);
