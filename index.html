@@ -260,6 +260,8 @@
         let appReady = false;
         let introBirdsStarted = false;
         let introBirdsReady = false;
+        let introBirdsBlobUrl = null;
+        let introBirdsRetryIntervalId = null;
         let startMusicTimeoutId = null;
         let stopIntroBirdsTimeoutId = null;
         const PRELOAD_TIMEOUT_MS = 8000;
@@ -336,11 +338,27 @@
             introBgBirds.volume = 1;
             introBgBirds.play().then(() => {
                 introBirdsStarted = true;
+                if (introBirdsRetryIntervalId !== null) {
+                    clearInterval(introBirdsRetryIntervalId);
+                    introBirdsRetryIntervalId = null;
+                }
                 document.removeEventListener('pointerdown', unlockIntroBirdsOnFirstInteraction);
                 document.removeEventListener('keydown', unlockIntroBirdsOnFirstInteraction);
             }).catch(() => {
                 // Puede bloquearse hasta interacción del usuario.
             });
+        }
+
+        function scheduleIntroBirdsAutoplayRetries() {
+            if (introBirdsRetryIntervalId !== null || introBirdsStarted) return;
+            introBirdsRetryIntervalId = setInterval(() => {
+                if (introBirdsStarted) {
+                    clearInterval(introBirdsRetryIntervalId);
+                    introBirdsRetryIntervalId = null;
+                    return;
+                }
+                startIntroBirdsMusic();
+            }, 700);
         }
 
         function unlockIntroBirdsOnFirstInteraction() {
@@ -421,6 +439,7 @@
                 new URL('assets/videos/video_escritorio.mp4', location.href).href,
                 new URL('assets/videos/zoom_movil.mp4', location.href).href,
                 new URL('assets/videos/zoom_escritorio.mp4', location.href).href,
+                new URL('assets/videos/aves_16.mp3', location.href).href,
                 new URL('assets/videos/interior_student_cafe.mp3', location.href).href,
                 new URL('pages/app_principal.html', location.href).href
             ]);
@@ -518,27 +537,32 @@
             if (pathname.endsWith('.mp3') || pathname.endsWith('.wav') || pathname.endsWith('.m4a')) {
                 return withTimeout(new Promise((resolve) => {
                     if (isIntroBirdsFile && introBgBirds) {
-                        let settled = false;
-                        const finish = () => {
-                            if (settled) return;
-                            settled = true;
-                            introBirdsReady = true;
-                            startIntroBirdsMusic();
-                            resolve();
-                        };
+                        (async () => {
+                            try {
+                                const response = await fetch(url, { cache: 'no-store' });
+                                if (!response.ok) {
+                                    throw new Error('No se pudo cargar aves_16.mp3 (' + response.status + ')');
+                                }
 
-                        introBgBirds.preload = 'auto';
-                        introBgBirds.addEventListener('loadeddata', finish, { once: true });
-                        introBgBirds.addEventListener('canplay', finish, { once: true });
-                        introBgBirds.addEventListener('canplaythrough', finish, { once: true });
-                        introBgBirds.addEventListener('error', finish, { once: true });
+                                const blob = await response.blob();
+                                if (introBirdsBlobUrl) {
+                                    URL.revokeObjectURL(introBirdsBlobUrl);
+                                }
+                                introBirdsBlobUrl = URL.createObjectURL(blob);
 
-                        if (introBgBirds.readyState >= 3) {
-                            finish();
-                            return;
-                        }
+                                introBgBirds.src = introBirdsBlobUrl;
+                                introBgBirds.preload = 'auto';
+                                introBgBirds.load();
 
-                        introBgBirds.load();
+                                introBirdsReady = true;
+                                startIntroBirdsMusic();
+                                scheduleIntroBirdsAutoplayRetries();
+                            } catch (error) {
+                                console.warn('No se pudo precargar aves_16.mp3:', error);
+                            } finally {
+                                resolve();
+                            }
+                        })();
                         return;
                     }
 
