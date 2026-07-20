@@ -71,11 +71,6 @@ const order = isFirstPrincipalVisit
     ? moveIdToFront(shuffledOrder, startCustomId)
     : shuffledOrder;
 const wrapper = document.getElementById('slides-wrapper');
-let suppressSwiperClickUntil = 0;
-
-function suppressNextSwiperClick() {
-    suppressSwiperClickUntil = Date.now() + 400;
-}
 
 function createZoomIconSvg(isMinus) {
     const symbolPath = isMinus
@@ -103,7 +98,6 @@ function createZoomOverlay() {
 
     const closeBtn = overlay.querySelector('#media-zoom-close');
     const close = () => {
-        suppressNextSwiperClick();
         overlay.classList.remove('is-visible');
         const zoomContent = overlay.querySelector('#media-zoom-content');
         zoomContent.innerHTML = '';
@@ -462,10 +456,6 @@ const bgVideoController = window.FinalBdayPrincipalBgVideo.createController({
 });
 
 swiper.on('click', (s, event) => {
-    if (Date.now() < suppressSwiperClickUntil) {
-        return;
-    }
-
     const clickedActiveSlide = event.target.closest('.swiper-slide-active');
     
     if (clickedActiveSlide) {
