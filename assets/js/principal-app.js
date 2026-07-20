@@ -72,6 +72,80 @@ const order = isFirstPrincipalVisit
     : shuffledOrder;
 const wrapper = document.getElementById('slides-wrapper');
 
+function createZoomIconSvg(isMinus) {
+    const symbolPath = isMinus
+        ? '<line x1="6" y1="11" x2="14" y2="11" stroke="#000" stroke-width="2.4" stroke-linecap="round"/>'
+        : '<line x1="6" y1="11" x2="14" y2="11" stroke="#000" stroke-width="2.4" stroke-linecap="round"/><line x1="10" y1="7" x2="10" y2="15" stroke="#000" stroke-width="2.4" stroke-linecap="round"/>';
+
+    return `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="10" cy="11" r="6" fill="none" stroke="#000" stroke-width="2.4"></circle>
+            <line x1="14.5" y1="15.5" x2="20" y2="21" stroke="#000" stroke-width="2.8" stroke-linecap="round"></line>
+            ${symbolPath}
+        </svg>
+    `;
+}
+
+function createZoomOverlay() {
+    const overlay = document.createElement('div');
+    overlay.className = 'media-zoom-overlay';
+    overlay.id = 'media-zoom-overlay';
+    overlay.innerHTML = `
+        <button class="media-zoom-close" id="media-zoom-close" type="button" aria-label="Cerrar pantalla completa">${createZoomIconSvg(true)}</button>
+        <div class="media-zoom-content" id="media-zoom-content"></div>
+    `;
+    document.body.appendChild(overlay);
+
+    const closeBtn = overlay.querySelector('#media-zoom-close');
+    const close = () => {
+        overlay.classList.remove('is-visible');
+        const zoomContent = overlay.querySelector('#media-zoom-content');
+        zoomContent.innerHTML = '';
+    };
+
+    closeBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+    });
+
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+            close();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && overlay.classList.contains('is-visible')) {
+            close();
+        }
+    });
+
+    return {
+        overlay: overlay,
+        openFrom: (sourceMedia) => {
+            if (!sourceMedia) return;
+            const zoomContent = overlay.querySelector('#media-zoom-content');
+            zoomContent.innerHTML = '';
+
+            const clone = sourceMedia.cloneNode(true);
+            if (clone.tagName === 'VIDEO') {
+                clone.autoplay = true;
+                clone.muted = true;
+                clone.loop = true;
+                clone.playsInline = true;
+                clone.controls = true;
+                clone.play().catch(() => {});
+            }
+
+            zoomContent.appendChild(clone);
+            overlay.classList.add('is-visible');
+        }
+    };
+}
+
+const zoomOverlayController = createZoomOverlay();
+
 function forceStartApp() {
     const mainSwiper = document.getElementById('main-swiper');
     mainSwiper.style.display = 'block';
@@ -118,10 +192,13 @@ function buildSlideNode(id) {
         ? `<div class="winner-badge"><img src="${projectPath('assets/favicon/torfeo.png')}" alt="Ganador"></div>`
         : '';
 
+    const zoomButtonHTML = `<button class="slide-zoom-btn" type="button" aria-label="Ver en pantalla completa">${createZoomIconSvg(false)}</button>`;
+
     const textHTML = `<span>${data.year}</span> | <span>${data.theme}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
 
     slide.innerHTML = `
         ${winnerBadgeHTML}
+        ${zoomButtonHTML}
         ${mediaHTML}
         <div class="marquee-container">
             <div class="crt-overlay"></div>
@@ -136,6 +213,22 @@ function buildSlideNode(id) {
 order.forEach((id) => {
     if (!customsData[id]) return;
     wrapper.appendChild(buildSlideNode(id));
+});
+
+wrapper.addEventListener('click', (event) => {
+    const zoomBtn = event.target.closest('.slide-zoom-btn');
+    if (!zoomBtn) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const slide = zoomBtn.closest('.swiper-slide');
+    if (!slide) return;
+
+    const mediaEl = slide.querySelector('.custom-media, .custom-main-image');
+    if (!mediaEl) return;
+
+    zoomOverlayController.openFrom(mediaEl);
 });
     
 const swiper = new Swiper('.swiper', {
