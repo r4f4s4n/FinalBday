@@ -1,6 +1,14 @@
 (function () {
     let initPromise = null;
 
+    function isLegacyPagesContext() {
+        return /\/pages\//.test(window.location.pathname);
+    }
+
+    function projectPath(path) {
+        return isLegacyPagesContext() ? `../${path}` : path;
+    }
+
     async function init() {
         if (initPromise) {
             return initPromise;
@@ -16,10 +24,10 @@
     }
 
     await loadComponents({
-        '[data-component="controls"]': '../components/app-controls.html',
-        '[data-component="media-shell"]': '../components/app-media-shell.html',
-        '[data-component="confirm-dialog"]': '../components/app-confirm-dialog.html',
-        '[data-component="final-screen"]': '../components/app-final-screen.html'
+        '[data-component="controls"]': projectPath('components/app-controls.html'),
+        '[data-component="media-shell"]': projectPath('components/app-media-shell.html'),
+        '[data-component="confirm-dialog"]': projectPath('components/app-confirm-dialog.html'),
+        '[data-component="final-screen"]': projectPath('components/app-final-screen.html')
     });
 	
 		window.FinalBdayBackGuard.enable();
@@ -70,7 +78,7 @@ function buildSlideNode(id) {
 
     const file = data.file || `custom${id}.png`;
     const isVideo = file && file.endsWith('.mp4');
-    const originalSrc = `../assets/customs/${file}`;
+    const originalSrc = projectPath(`assets/customs/${file}`);
     const resolvedSrc = window.FinalBdayAssetCache && typeof window.FinalBdayAssetCache.resolve === 'function'
         ? window.FinalBdayAssetCache.resolve(originalSrc)
         : originalSrc;
@@ -80,7 +88,7 @@ function buildSlideNode(id) {
         : `<img class="custom-main-image" data-asset-original-src="${originalSrc}" src="${resolvedSrc}" alt="Custom">`;
 
     const winnerBadgeHTML = data.isWinner
-        ? '<div class="winner-badge"><img src="../assets/favicon/torfeo.png" alt="Ganador"></div>'
+        ? `<div class="winner-badge"><img src="${projectPath('assets/favicon/torfeo.png')}" alt="Ganador"></div>`
         : '';
 
     const textHTML = `<span>${data.year}</span> | <span>${data.theme}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
@@ -207,11 +215,11 @@ function buildGridItem(id, data) {
         video.muted = true;
         video.loop = true;
         video.playsInline = true;
-        video.src = `../assets/customs/${file}`;
+        video.src = projectPath(`assets/customs/${file}`);
         gridItem.appendChild(video);
     } else {
         const img = document.createElement('img');
-        img.src = `../assets/customs/${file}`;
+        img.src = projectPath(`assets/customs/${file}`);
         img.alt = 'Custom';
         gridItem.appendChild(img);
     }
@@ -306,9 +314,9 @@ const btnBack = document.getElementById('btn-back');
 const bgVideoA = document.getElementById('app-bg-video');
 const bgVideoB = document.getElementById('app-bg-video-alt');
 
-const BG_VIDEO_ORIGINAL = '../assets/videos/disco_movil.mp4';
-const BG_VIDEO_TRANSITION = '../assets/videos/bar1-movil.mp4';
-const BG_VIDEO_FINAL = '../assets/videos/bar2-movil.mp4';
+const BG_VIDEO_ORIGINAL = projectPath('assets/videos/disco_movil.mp4');
+const BG_VIDEO_TRANSITION = projectPath('assets/videos/bar1-movil.mp4');
+const BG_VIDEO_FINAL = projectPath('assets/videos/bar2-movil.mp4');
 
 const bgVideoController = window.FinalBdayPrincipalBgVideo.createController({
     finalTextBox: finalTextBox,
