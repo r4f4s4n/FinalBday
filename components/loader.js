@@ -30,12 +30,19 @@ async function loadComponentInto(selector, url, options) {
 
     const effectiveOptions = getLoaderOptions(options);
     const normalizedUrl = normalizeFetchPath(url, effectiveOptions);
-    const response = await fetch(normalizedUrl, { cache: 'no-store' });
-    if (!response.ok) {
-        throw new Error(`No se pudo cargar ${normalizedUrl}: ${response.status}`);
-    }
+    const cachedMarkup = window.FinalBdayAssetCache && typeof window.FinalBdayAssetCache.getText === 'function'
+        ? window.FinalBdayAssetCache.getText(normalizedUrl)
+        : '';
 
-    const rawMarkup = await response.text();
+    let rawMarkup = cachedMarkup;
+    if (!rawMarkup) {
+        const response = await fetch(normalizedUrl, { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`No se pudo cargar ${normalizedUrl}: ${response.status}`);
+        }
+
+        rawMarkup = await response.text();
+    }
     container.innerHTML = normalizeComponentMarkup(rawMarkup, effectiveOptions);
 }
 

@@ -70,10 +70,14 @@ function buildSlideNode(id) {
 
     const file = data.file || `custom${id}.png`;
     const isVideo = file && file.endsWith('.mp4');
+    const originalSrc = `../assets/customs/${file}`;
+    const resolvedSrc = window.FinalBdayAssetCache && typeof window.FinalBdayAssetCache.resolve === 'function'
+        ? window.FinalBdayAssetCache.resolve(originalSrc)
+        : originalSrc;
 
     const mediaHTML = isVideo
-        ? `<video class="custom-media" autoplay muted loop playsinline src="../assets/customs/${file}"></video>`
-        : `<img class="custom-main-image" src="../assets/customs/${file}" alt="Custom">`;
+        ? `<video class="custom-media" autoplay muted loop playsinline data-asset-original-src="${originalSrc}" src="${resolvedSrc}"></video>`
+        : `<img class="custom-main-image" data-asset-original-src="${originalSrc}" src="${resolvedSrc}" alt="Custom">`;
 
     const winnerBadgeHTML = data.isWinner
         ? '<div class="winner-badge"><img src="../assets/favicon/torfeo.png" alt="Ganador"></div>'
@@ -180,6 +184,79 @@ const mainSwiperEl = document.getElementById('main-swiper');
 const mainGridEl = document.getElementById('main-grid');
 const gridWrapper = document.getElementById('grid-wrapper');
 const diceBtn = document.getElementById('random-dice');
+const customsByYear = {};
+
+Object.entries(customsData).forEach(([id, data]) => {
+    if (!customsByYear[data.year]) {
+        customsByYear[data.year] = [];
+    }
+    customsByYear[data.year].push(parseInt(id));
+});
+
+function buildGridItem(id, data) {
+    const gridItem = document.createElement('div');
+    gridItem.className = 'grid-item';
+    gridItem.setAttribute('data-target-id', id);
+    gridItem.setAttribute('data-year', data.year);
+
+    const file = data.file || `custom${id}.png`;
+
+    if (file && file.endsWith('.mp4')) {
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+        video.src = `../assets/customs/${file}`;
+        gridItem.appendChild(video);
+    } else {
+        const img = document.createElement('img');
+        img.src = `../assets/customs/${file}`;
+        img.alt = 'Custom';
+        gridItem.appendChild(img);
+    }
+
+    gridItem.addEventListener('click', () => {
+        const targetId = parseInt(id);
+        const selectedYear = gridItem.getAttribute('data-year');
+        const categoryIds = customsByYear[selectedYear] || [];
+
+        mainGridEl.style.display = 'none';
+        mainSwiperEl.style.display = 'block';
+        diceBtn.style.display = 'flex';
+
+        rebuildSwiperSlides(categoryIds);
+
+        const targetSlideIndex = categoryIds.indexOf(targetId);
+        if (targetSlideIndex !== -1) {
+            goToSlideIndex(targetSlideIndex, 0);
+        }
+    });
+
+    return gridItem;
+}
+
+function buildGridItems() {
+    const fragment = document.createDocumentFragment();
+
+    Object.entries(customsData).forEach(([id, data]) => {
+        fragment.appendChild(buildGridItem(id, data));
+    });
+
+    gridWrapper.innerHTML = '';
+    gridWrapper.appendChild(fragment);
+}
+
+function updateGridVisibility(selectedYear) {
+    const gridItems = gridWrapper.querySelectorAll('.grid-item');
+
+    gridItems.forEach((gridItem) => {
+        const itemYear = gridItem.getAttribute('data-year');
+        gridItem.style.display = itemYear === selectedYear ? '' : 'none';
+    });
+}
+
+buildGridItems();
 
 select.addEventListener('change', (e) => {
     const selectedYear = e.target.value;
@@ -202,47 +279,7 @@ select.addEventListener('change', (e) => {
         diceBtn.style.display = 'none';
         mainGridEl.style.display = 'block';
 
-        const filteredCustoms = Object.entries(customsData).filter(([id, data]) => {
-            return data.year === selectedYear;
-        });
-
-        gridWrapper.innerHTML = '';
-        filteredCustoms.forEach(([id, data]) => {
-            const gridItem = document.createElement('div');
-            gridItem.className = 'grid-item';
-            gridItem.setAttribute('data-target-id', id);
-
-            const file = data.file || `custom${id}.png`;
-            let mediaHTML = '';
-
-            if (file && file.endsWith('.mp4')) {
-                mediaHTML = `<video autoplay muted loop playsinline src="../assets/customs/${file}"></video>`;
-            } else {
-                mediaHTML = `<img src="../assets/customs/${file}" alt="Custom">`;
-            }
-
-            gridItem.innerHTML = mediaHTML;
-            gridWrapper.appendChild(gridItem);
-
-            gridItem.addEventListener('click', () => {
-                const targetId = parseInt(id);
-                // Ids de la categoría/año actualmente seleccionada en el grid
-                const categoryIds = filteredCustoms.map(([entryId]) => parseInt(entryId));
-
-                // El select mantiene el valor de la categoría seleccionada
-                // (ya está en selectedYear), por lo que mostrará su texto.
-                mainGridEl.style.display = 'none';
-                mainSwiperEl.style.display = 'block';
-                diceBtn.style.display = 'flex';
-
-                rebuildSwiperSlides(categoryIds);
-
-                const targetSlideIndex = categoryIds.indexOf(targetId);
-                if (targetSlideIndex !== -1) {
-                    goToSlideIndex(targetSlideIndex, 0);
-                }
-            });
-        });
+        updateGridVisibility(selectedYear);
     }
 });
 
@@ -339,15 +376,6 @@ btnBack.addEventListener('click', () => {
 
     bgVideoController.restoreOriginalBgVideo();
 
-    select.value = 'all'; 
-    if (currentSwiperIds !== order) {
-        const activeId = getActiveSlideId();
-        rebuildSwiperSlides(order);
-        if (activeId !== null) {
-            const idx = order.indexOf(activeId);
-            if (idx !== -1) goToSlideIndex(idx, 0);
-        }
-    }
     mainSwiperEl.style.display = 'block';
     mainSwiperEl.style.opacity = '1';
     mainSwiperEl.style.pointerEvents = 'auto';

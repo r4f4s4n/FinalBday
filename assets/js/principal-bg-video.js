@@ -13,6 +13,26 @@
         let standbyBgVideo = bgVideoB;
         let bgTransitionToken = 0;
 
+        function resolveAssetUrl(url) {
+            if (window.FinalBdayAssetCache && typeof window.FinalBdayAssetCache.resolve === 'function') {
+                return window.FinalBdayAssetCache.resolve(url);
+            }
+
+            return new URL(url, location.href).href;
+        }
+
+        function syncMediaSource(mediaEl, src) {
+            const resolvedSrc = resolveAssetUrl(src);
+            const currentSrc = mediaEl.getAttribute('src') || '';
+
+            if (currentSrc === resolvedSrc || mediaEl.currentSrc === resolvedSrc) {
+                return false;
+            }
+
+            mediaEl.src = resolvedSrc;
+            return true;
+        }
+
         function hideFinalContent() {
             finalTextBox.classList.remove('is-visible');
             finalPreviewBox.classList.remove('is-visible');
@@ -39,8 +59,10 @@
         }
 
         function preloadStandbyBgVideo(src) {
-            standbyBgVideo.src = src;
-            standbyBgVideo.load();
+            const changed = syncMediaSource(standbyBgVideo, src);
+            if (changed) {
+                standbyBgVideo.load();
+            }
         }
 
         function preloadTransitionStartVideo() {
@@ -50,8 +72,8 @@
         }
 
         function resetBgLayersToOriginalInstant() {
-            const originalUrl = new URL(originalVideo, location.href).href;
-            const activeSrc = activeBgVideo.currentSrc || '';
+            const originalUrl = resolveAssetUrl(originalVideo);
+            const activeSrc = activeBgVideo.currentSrc || activeBgVideo.getAttribute('src') || '';
 
             if (activeSrc.indexOf(originalUrl) !== -1 && activeBgVideo.classList.contains('is-active')) {
                 return;
@@ -59,10 +81,10 @@
 
             bgTransitionToken += 1;
 
-            clearBgVideo(bgVideoA);
-            clearBgVideo(bgVideoB);
+            bgVideoA.pause();
+            bgVideoB.pause();
 
-            bgVideoA.src = originalVideo;
+            bgVideoA.src = originalUrl;
             bgVideoA.loop = true;
             bgVideoA.muted = true;
             bgVideoA.playsInline = true;
@@ -93,8 +115,9 @@
                 if (onActive) onActive(incoming);
             }
 
+            const resolvedSrc = resolveAssetUrl(src);
             const alreadyLoaded = incoming.readyState >= 3 &&
-                incoming.currentSrc && incoming.currentSrc.indexOf(src) !== -1;
+                incoming.currentSrc && incoming.currentSrc.indexOf(resolvedSrc) !== -1;
 
             if (alreadyLoaded) {
                 activateIncoming();
@@ -105,8 +128,13 @@
                 incoming.removeEventListener('canplay', onCanPlay);
                 activateIncoming();
             });
-            incoming.src = src;
-            incoming.load();
+
+            const changed = syncMediaSource(incoming, resolvedSrc);
+            if (changed) {
+                incoming.load();
+            } else {
+                activateIncoming();
+            }
         }
 
         function playBgTransition() {
@@ -146,7 +174,6 @@
                 loop: true,
                 token: myToken,
                 onActive: () => {
-                    clearBgVideo(standbyBgVideo);
                     preloadTransitionStartVideo();
                 }
             });
