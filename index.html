@@ -537,6 +537,24 @@
             }
         }
 
+        function isFaviconAssetUrl(url) {
+            try {
+                const parsed = new URL(url, location.href);
+                return parsed.pathname.indexOf('/assets/favicon/') !== -1;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function isVideoAssetUrl(url) {
+            try {
+                const parsed = new URL(url, location.href);
+                return parsed.pathname.indexOf('/assets/videos/') !== -1;
+            } catch (error) {
+                return false;
+            }
+        }
+
         function isValidResourcePath(path) {
             if (!path) return false;
             if (path.startsWith('data:')) return false;
@@ -655,20 +673,35 @@
 
         async function preloadAppResources(options) {
             const cfg = options || {};
-            const introBirdsUrl = new URL('assets/videos/aves_16.mp3', location.href).href;
             const resources = await discoverResources();
-            const remainingResources = resources.filter((url) => url !== introBirdsUrl);
-
-            const introBirdsReady = preloadResource(introBirdsUrl).then((loaded) => {
-                window.FinalBdayAssetCache.hydrateExistingMedia(document);
-                introAudio.startIntroBirdsMusic();
-                return loaded;
+            const faviconResources = resources.filter((url) => isFaviconAssetUrl(url));
+            const videoResources = resources.filter((url) => isVideoAssetUrl(url));
+            const customResources = resources.filter((url) => isCustomAssetUrl(url));
+            const otherResources = resources.filter((url) => {
+                return !isFaviconAssetUrl(url) && !isVideoAssetUrl(url) && !isCustomAssetUrl(url);
             });
 
-            await Promise.all([
-                preloadAllResources(remainingResources, cfg),
-                introBirdsReady
-            ]);
+            await preloadAllResources(faviconResources, cfg);
+
+            const introBirdsUrl = new URL('assets/videos/aves_16.mp3', location.href).href;
+            const orderedVideoResources = videoResources.slice().sort((left, right) => {
+                if (left === introBirdsUrl) return -1;
+                if (right === introBirdsUrl) return 1;
+                return 0;
+            });
+
+            await preloadAllResources(orderedVideoResources, {
+                ...cfg,
+                onResourceLoaded: (url) => {
+                    if (url === introBirdsUrl) {
+                        window.FinalBdayAssetCache.hydrateExistingMedia(document);
+                        introAudio.startIntroBirdsMusic();
+                    }
+                }
+            });
+
+            await preloadAllResources(otherResources, cfg);
+            await preloadAllResources(customResources, cfg);
 
             await initPrincipalApp();
 
@@ -738,6 +771,10 @@
 
                     try {
                         const loaded = await preloadResource(url);
+
+                        if (loaded && typeof cfg.onResourceLoaded === 'function') {
+                            cfg.onResourceLoaded(url);
+                        }
 
                         if (loaded && isCustomAssetUrl(url) && typeof cfg.onCustomLoaded === 'function') {
                             cfg.onCustomLoaded(url);
