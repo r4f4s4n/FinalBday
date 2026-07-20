@@ -205,13 +205,13 @@
         <section class="view" id="intro-view" aria-label="Intro">
             <div class="intro-container">
                 <video autoplay muted loop playsinline id="intro-bg-video">
-                    <source data-asset-original-src="assets/videos/video_movil.mp4" media="(max-width: 768px)">
-                    <source data-asset-original-src="assets/videos/video_escritorio.mp4" media="(min-width: 769px)">
+                    <source src="assets/videos/video_movil.mp4" media="(max-width: 768px)">
+                    <source src="assets/videos/video_escritorio.mp4" media="(min-width: 769px)">
                 </video>
 
                 <video id="intro-transition-video" playsinline muted>
-                    <source data-asset-original-src="assets/videos/zoom_movil.mp4" media="(max-width: 768px)">
-                    <source data-asset-original-src="assets/videos/zoom_escritorio.mp4" media="(min-width: 769px)">
+                    <source src="assets/videos/zoom_movil.mp4" media="(max-width: 768px)">
+                    <source src="assets/videos/zoom_escritorio.mp4" media="(min-width: 769px)">
                 </video>
 
                 <div class="overlay" id="intro-overlay">
@@ -233,10 +233,10 @@
     </div>
 
     <audio id="global-bg-music" preload="auto" loop>
-        <source data-asset-original-src="assets/videos/interior_student_cafe.mp3" type="audio/mpeg">
+        <source src="assets/videos/interior_student_cafe.mp3" type="audio/mpeg">
     </audio>
     <audio id="intro-bg-birds" preload="auto" loop>
-        <source data-asset-original-src="assets/videos/aves_16.mp3" type="audio/mpeg">
+        <source src="assets/videos/aves_16.mp3" type="audio/mpeg">
     </audio>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
@@ -259,228 +259,38 @@
         let principalAppReady = false;
         let appReady = false;
         let startMusicTimeoutId = null;
-        const PRELOAD_TIMEOUT_MS = 25000;
-        const POST_LOAD_WAIT_MS = 10000;
-        const FAILED_PRELOAD_RETRY_MS = 15000;
-        const retainedPreloadedResources = new Map();
-        const failedPreloadResources = new Map();
-        let failedPreloadRetryTimerId = null;
+        let stopIntroBirdsTimeoutId = null;
+        const PRELOAD_TIMEOUT_MS = 8000;
 
-        function toAbsoluteResourceUrl(url) {
-            return new URL(url, location.href).href;
+        function normalizeComponentMarkup(markup) {
+            return markup.replace(/\.\.\/assets\//g, 'assets/');
         }
 
-        function isBlobBackedAsset(pathname) {
-            return (
-                pathname.endsWith('.png') ||
-                pathname.endsWith('.jpg') ||
-                pathname.endsWith('.jpeg') ||
-                pathname.endsWith('.gif') ||
-                pathname.endsWith('.webp') ||
-                pathname.endsWith('.ico') ||
-                pathname.endsWith('.mp4') ||
-                pathname.endsWith('.webm') ||
-                pathname.endsWith('.ogg') ||
-                pathname.endsWith('.mp3') ||
-                pathname.endsWith('.wav') ||
-                pathname.endsWith('.m4a')
-            );
+        function normalizeFetchPath(path) {
+            if (path.startsWith('../')) return path.slice(3);
+            return path;
         }
 
-        function getCachedResolvedUrl(url) {
-            const absoluteUrl = toAbsoluteResourceUrl(url);
-            const cachedEntry = retainedPreloadedResources.get(absoluteUrl);
-            return cachedEntry && cachedEntry.objectUrl ? cachedEntry.objectUrl : absoluteUrl;
-        }
+        async function loadComponentInto(selector, url) {
+            const container = document.querySelector(selector);
+            if (!container) return;
 
-        function getCachedText(url) {
-            const absoluteUrl = toAbsoluteResourceUrl(url);
-            const cachedEntry = retainedPreloadedResources.get(absoluteUrl);
-            return cachedEntry && typeof cachedEntry.text === 'string' ? cachedEntry.text : '';
-        }
-
-        function rememberFailedPreload(url, errorMessage) {
-            const absoluteUrl = toAbsoluteResourceUrl(url);
-            const previous = failedPreloadResources.get(absoluteUrl);
-            failedPreloadResources.set(absoluteUrl, {
-                attempts: previous ? previous.attempts + 1 : 1,
-                lastError: errorMessage || 'Error desconocido',
-                lastAttemptAt: Date.now()
-            });
-            scheduleFailedPreloadRetry();
-        }
-
-        function clearFailedPreload(url) {
-            failedPreloadResources.delete(toAbsoluteResourceUrl(url));
-        }
-
-        function setElementAssetSource(element, url) {
-            if (!element || !url) return;
-
-            const absoluteUrl = toAbsoluteResourceUrl(url);
-            const resolvedUrl = getCachedResolvedUrl(absoluteUrl);
-            const currentOriginal = element.getAttribute('data-asset-original-src');
-            const currentResolved = element.getAttribute('src') || '';
-
-            if (currentOriginal === absoluteUrl && currentResolved === resolvedUrl) {
-                return;
+            const normalizedUrl = normalizeFetchPath(url);
+            const response = await fetch(normalizedUrl, { cache: 'no-store' });
+            if (!response.ok) {
+                throw new Error('No se pudo cargar ' + normalizedUrl + ': ' + response.status);
             }
 
-            element.setAttribute('data-asset-original-src', absoluteUrl);
-            element.setAttribute('src', resolvedUrl);
+            const rawMarkup = await response.text();
+            container.innerHTML = normalizeComponentMarkup(rawMarkup);
         }
 
-        function hydrateSourceChildren(mediaEl) {
-            const sourceEls = mediaEl.querySelectorAll('source[src], source[data-asset-original-src]');
-            let hasChanges = false;
-
-            sourceEls.forEach((sourceEl) => {
-                const originalAttr = sourceEl.getAttribute('data-asset-original-src') || sourceEl.getAttribute('src');
-                if (!originalAttr) return;
-
-                const absoluteUrl = toAbsoluteResourceUrl(originalAttr);
-                const resolvedUrl = getCachedResolvedUrl(absoluteUrl);
-                if (sourceEl.getAttribute('src') === resolvedUrl && sourceEl.getAttribute('data-asset-original-src') === absoluteUrl) {
-                    return;
-                }
-
-                sourceEl.setAttribute('data-asset-original-src', absoluteUrl);
-                sourceEl.setAttribute('src', resolvedUrl);
-                hasChanges = true;
-            });
-
-            if (hasChanges && typeof mediaEl.load === 'function') {
-                mediaEl.load();
-            }
+        async function loadComponents(components) {
+            const entries = Object.entries(components);
+            await Promise.all(entries.map(([selector, url]) => loadComponentInto(selector, url)));
         }
 
-        function hydrateExistingMediaTree(root) {
-            const scope = root || document;
-
-            scope.querySelectorAll('img[src]').forEach((imgEl) => {
-                const originalAttr = imgEl.getAttribute('data-asset-original-src') || imgEl.getAttribute('src');
-                if (!originalAttr) return;
-                setElementAssetSource(imgEl, originalAttr);
-            });
-
-            scope.querySelectorAll('video, audio').forEach((mediaEl) => {
-                const directSrc = mediaEl.getAttribute('data-asset-original-src') || mediaEl.getAttribute('src');
-                if (directSrc) {
-                    const beforeSrc = mediaEl.getAttribute('src') || '';
-                    setElementAssetSource(mediaEl, directSrc);
-                    if ((mediaEl.getAttribute('src') || '') !== beforeSrc && typeof mediaEl.load === 'function') {
-                        mediaEl.load();
-                    }
-                }
-
-                hydrateSourceChildren(mediaEl);
-            });
-
-            scope.querySelectorAll('source[src], source[data-asset-original-src]').forEach((sourceEl) => {
-                const originalAttr = sourceEl.getAttribute('data-asset-original-src') || sourceEl.getAttribute('src');
-                if (!originalAttr) return;
-
-                const absoluteUrl = toAbsoluteResourceUrl(originalAttr);
-                const resolvedUrl = getCachedResolvedUrl(absoluteUrl);
-
-                if (sourceEl.getAttribute('src') !== resolvedUrl) {
-                    sourceEl.setAttribute('src', resolvedUrl);
-                }
-
-                if (!sourceEl.getAttribute('data-asset-original-src')) {
-                    sourceEl.setAttribute('data-asset-original-src', absoluteUrl);
-                }
-            });
-        }
-
-
-        async function fetchResourceBlob(url, timeoutMs) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-            try {
-                const response = await fetch(url, {
-                    cache: 'no-store',
-                    signal: controller.signal
-                });
-
-                if (!response.ok) {
-                    throw new Error('HTTP ' + response.status);
-                }
-
-                return await response.blob();
-            } finally {
-                clearTimeout(timeoutId);
-            }
-        }
-
-        async function retryFailedPreloads() {
-            failedPreloadRetryTimerId = null;
-
-            const failedUrls = Array.from(failedPreloadResources.keys());
-            for (const url of failedUrls) {
-                try {
-                    const loaded = await preloadResource(url, { isRetry: true });
-                    if (loaded) {
-                        hydrateExistingMediaTree(document);
-                    }
-                } catch (error) {
-                    console.warn('Reintento de precarga fallido:', url, error);
-                }
-            }
-
-            if (failedPreloadResources.size > 0) {
-                scheduleFailedPreloadRetry();
-            }
-        }
-
-        function scheduleFailedPreloadRetry() {
-            if (failedPreloadRetryTimerId !== null) {
-                return;
-            }
-
-            failedPreloadRetryTimerId = setTimeout(() => {
-                retryFailedPreloads().catch((error) => {
-                    console.warn('No se pudo reintentar la precarga fallida:', error);
-                    failedPreloadRetryTimerId = null;
-                    if (failedPreloadResources.size > 0) {
-                        scheduleFailedPreloadRetry();
-                    }
-                });
-            }, FAILED_PRELOAD_RETRY_MS);
-        }
-
-        window.FinalBdayAssetCache = {
-            has(url) {
-                return retainedPreloadedResources.has(toAbsoluteResourceUrl(url));
-            },
-            get(url) {
-                return retainedPreloadedResources.get(toAbsoluteResourceUrl(url)) || null;
-            },
-            resolve(url) {
-                return getCachedResolvedUrl(url);
-            },
-            getText(url) {
-                return getCachedText(url);
-            },
-            setElementSource(element, url) {
-                setElementAssetSource(element, url);
-            },
-            hydrateExistingMedia(root) {
-                hydrateExistingMediaTree(root);
-            },
-            getFailedResources() {
-                return Array.from(failedPreloadResources.entries()).map(([url, meta]) => ({
-                    url: url,
-                    attempts: meta.attempts,
-                    lastError: meta.lastError,
-                    lastAttemptAt: meta.lastAttemptAt
-                }));
-            },
-            retryFailed() {
-                return retryFailedPreloads();
-            }
-        };
+        window.loadComponents = loadComponents;
 
         function updateProgress(done, total, statusMessage) {
             const safeDone = Math.max(0, done);
@@ -518,35 +328,13 @@
             });
         }
 
-        function waitMs(ms) {
-            return new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
-        }
-
-        function isCustomAssetUrl(url) {
-            try {
-                const parsed = new URL(url, location.href);
-                return parsed.pathname.indexOf('/assets/customs/') !== -1;
-            } catch (error) {
-                return false;
-            }
-        }
-
-        function isFaviconAssetUrl(url) {
-            try {
-                const parsed = new URL(url, location.href);
-                return parsed.pathname.indexOf('/assets/favicon/') !== -1;
-            } catch (error) {
-                return false;
-            }
-        }
-
-        function isVideoAssetUrl(url) {
-            try {
-                const parsed = new URL(url, location.href);
-                return parsed.pathname.indexOf('/assets/videos/') !== -1;
-            } catch (error) {
-                return false;
-            }
+        function startIntroBirdsMusic() {
+            if (!introBgBirds) return;
+            introBgBirds.loop = true;
+            introBgBirds.volume = 1;
+            introBgBirds.play().catch(() => {
+                // Puede bloquearse hasta interacción del usuario.
+            });
         }
 
         function isValidResourcePath(path) {
@@ -586,6 +374,29 @@
             return urls;
         }
 
+        function extractPrincipalDataResources(pageHtml, baseUrl) {
+            const urls = new Set();
+
+            // Archivos de customs: file: "custom123.png"
+            const customFileRegex = /file\s*:\s*"(custom\d+\.[a-z0-9]+)"/gi;
+            let customMatch;
+            while ((customMatch = customFileRegex.exec(pageHtml)) !== null) {
+                const fileName = customMatch[1];
+                urls.add(new URL('../assets/customs/' + fileName, baseUrl).href);
+            }
+
+            // Videos de fondo de la principal (disco/bar1/bar2...)
+            const bgVideoRegex = /const\s+BG_VIDEO_[A-Z_]+\s*=\s*'([^']+)'/gi;
+            let bgMatch;
+            while ((bgMatch = bgVideoRegex.exec(pageHtml)) !== null) {
+                const rawPath = bgMatch[1].trim();
+                if (!isValidResourcePath(rawPath)) continue;
+                urls.add(new URL(rawPath, baseUrl).href);
+            }
+
+            return urls;
+        }
+
         async function discoverResources() {
             const pages = [
                 'pages/app_intro.html',
@@ -593,13 +404,8 @@
             ];
 
             const resources = new Set([
-                new URL('assets/videos/aves_16.mp3', location.href).href,
                 new URL('assets/favicon/favicon.ico', location.href).href,
                 new URL('components/loader.js', location.href).href,
-                new URL('components/app-controls.html', location.href).href,
-                new URL('components/app-media-shell.html', location.href).href,
-                new URL('components/app-confirm-dialog.html', location.href).href,
-                new URL('components/app-final-screen.html', location.href).href,
                 new URL('assets/videos/video_movil.mp4', location.href).href,
                 new URL('assets/videos/video_escritorio.mp4', location.href).href,
                 new URL('assets/videos/zoom_movil.mp4', location.href).href,
@@ -622,27 +428,9 @@
                 }
 
                 if (pagePath === 'pages/app_principal.html') {
-                    // Los archivos de customs ahora viven en el módulo
-                    // principal-customs-data.js (ya cargado como <script>).
-                    // Usamos la API directamente en lugar de parsear el HTML.
-                    if (window.FinalBdayCustomsData && typeof window.FinalBdayCustomsData.getData === 'function') {
-                        const customsData = window.FinalBdayCustomsData.getData();
-                        for (const item of Object.values(customsData)) {
-                            if (item.file) {
-                                resources.add(new URL('assets/customs/' + item.file, location.href).href);
-                            }
-                        }
-                    }
-
-                    // Videos de fondo del principal: ya no están inline en el
-                    // HTML, así que los añadimos explícitamente.
-                    const bgVideos = [
-                        'assets/videos/disco_movil.mp4',
-                        'assets/videos/bar1-movil.mp4',
-                        'assets/videos/bar2-movil.mp4'
-                    ];
-                    for (const v of bgVideos) {
-                        resources.add(new URL(v, location.href).href);
+                    const principalDataResources = extractPrincipalDataResources(text, pageUrl.href);
+                    for (const url of principalDataResources) {
+                        resources.add(url);
                     }
                 }
             }
@@ -665,96 +453,65 @@
             return sameOriginResources;
         }
 
-        async function preloadAppResources(options) {
-            const cfg = options || {};
-            const resources = await discoverResources();
-            const faviconResources = resources.filter((url) => isFaviconAssetUrl(url));
-            const videoResources = resources.filter((url) => isVideoAssetUrl(url));
-            const customResources = resources.filter((url) => isCustomAssetUrl(url));
-            const otherResources = resources.filter((url) => {
-                return !isFaviconAssetUrl(url) && !isVideoAssetUrl(url) && !isCustomAssetUrl(url);
-            });
-
-            await preloadAllResources(faviconResources, cfg);
-
-            const introBirdsUrl = new URL('assets/videos/aves_16.mp3', location.href).href;
-            const orderedVideoResources = videoResources.slice().sort((left, right) => {
-                if (left === introBirdsUrl) return -1;
-                if (right === introBirdsUrl) return 1;
-                return 0;
-            });
-
-            await preloadAllResources(orderedVideoResources, {
-                ...cfg,
-                onResourceLoaded: (url) => {
-                    if (url === introBirdsUrl) {
-                        window.FinalBdayAssetCache.hydrateExistingMedia(document);
-                        introAudio.startIntroBirdsMusic();
-                    }
-                }
-            });
-
-            await preloadAllResources(otherResources, cfg);
-            await preloadAllResources(customResources, cfg);
-
-            await initPrincipalApp();
-
-            window.FinalBdayAssetCache.hydrateExistingMedia(document);
-        }
-
-        async function preloadResource(url, options) {
-            const absoluteUrl = toAbsoluteResourceUrl(url);
-            if (retainedPreloadedResources.has(absoluteUrl)) {
-                return true;
-            }
-
-            const parsed = new URL(absoluteUrl);
+        async function preloadResource(url) {
+            const parsed = new URL(url);
             const pathname = parsed.pathname.toLowerCase();
 
-            try {
-                if (isBlobBackedAsset(pathname)) {
-                    const blob = await fetchResourceBlob(absoluteUrl, PRELOAD_TIMEOUT_MS);
-                    const objectUrl = URL.createObjectURL(blob);
+            const withTimeout = (promise, timeoutMs = PRELOAD_TIMEOUT_MS) => {
+                return new Promise((resolve) => {
+                    const timeoutId = setTimeout(() => resolve(), timeoutMs);
 
-                    retainedPreloadedResources.set(absoluteUrl, {
-                        absoluteUrl: absoluteUrl,
-                        kind: 'binary',
-                        objectUrl: objectUrl
+                    promise.then(() => {
+                        clearTimeout(timeoutId);
+                        resolve();
+                    }).catch(() => {
+                        clearTimeout(timeoutId);
+                        resolve();
                     });
-                    clearFailedPreload(absoluteUrl);
-                    return true;
-                }
-
-                const response = await fetch(absoluteUrl, { cache: 'no-store' });
-                if (!response.ok) {
-                    throw new Error('HTTP ' + response.status);
-                }
-
-                const text = await response.text();
-                retainedPreloadedResources.set(absoluteUrl, {
-                    absoluteUrl: absoluteUrl,
-                    text: text,
-                    kind: 'text'
                 });
-                clearFailedPreload(absoluteUrl);
-                return true;
-            } catch (error) {
-                const message = error && error.name === 'AbortError'
-                    ? 'Timeout de precarga'
-                    : (error && error.message) || 'Error de precarga';
-                rememberFailedPreload(absoluteUrl, message);
+            };
 
-                if (!options || !options.isRetry) {
-                    console.warn('Precarga fallida:', absoluteUrl, message);
-                }
+            if (pathname.endsWith('.mp4') || pathname.endsWith('.webm') || pathname.endsWith('.ogg')) {
+                return withTimeout(new Promise((resolve) => {
+                    const video = document.createElement('video');
+                    video.preload = 'auto';
+                    video.muted = true;
 
-                return false;
+                    const finish = () => resolve();
+                    video.addEventListener('loadeddata', finish, { once: true });
+                    video.addEventListener('canplay', finish, { once: true });
+                    video.addEventListener('error', finish, { once: true });
+
+                    video.src = url;
+                    video.load();
+                }));
             }
+
+            if (
+                pathname.endsWith('.png') ||
+                pathname.endsWith('.jpg') ||
+                pathname.endsWith('.jpeg') ||
+                pathname.endsWith('.gif') ||
+                pathname.endsWith('.webp') ||
+                pathname.endsWith('.ico')
+            ) {
+                return withTimeout(new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => resolve();
+                    img.onerror = () => resolve();
+                    img.src = url;
+                }));
+            }
+
+            return withTimeout(fetch(url, { cache: 'no-store' }));
         }
 
-        async function preloadAllResources(resourceUrls, options) {
-            const cfg = options || {};
-            const maxConcurrent = 3;
+        async function preloadAllResources(resourceUrls) {
+            let done = 0;
+            const total = resourceUrls.length;
+            updateProgress(0, total, 'Disfrazando al personal...');
+
+            const maxConcurrent = 10;
             let index = 0;
 
             async function worker() {
@@ -764,17 +521,12 @@
                     const url = resourceUrls[currentIndex];
 
                     try {
-                        const loaded = await preloadResource(url);
-
-                        if (loaded && typeof cfg.onResourceLoaded === 'function') {
-                            cfg.onResourceLoaded(url);
-                        }
-
-                        if (loaded && isCustomAssetUrl(url) && typeof cfg.onCustomLoaded === 'function') {
-                            cfg.onCustomLoaded(url);
-                        }
+                        await preloadResource(url);
                     } catch (error) {
                         console.warn('Error de precarga:', url, error);
+                    } finally {
+                        done += 1;
+                        updateProgress(done, total, 'Disfrazando al personal...');
                     }
                 }
             }
@@ -828,20 +580,12 @@
             if (principalInitPromise) return principalInitPromise;
 
             principalInitPromise = (async () => {
-                const cachedPageHtml = window.FinalBdayAssetCache && typeof window.FinalBdayAssetCache.getText === 'function'
-                    ? window.FinalBdayAssetCache.getText('pages/app_principal.html')
-                    : '';
-
-                let pageHtml = cachedPageHtml;
-                if (!pageHtml) {
-                    const pageResponse = await fetch('pages/app_principal.html', { cache: 'no-store' });
-                    if (!pageResponse.ok) {
-                        throw new Error('No se pudo leer pages/app_principal.html (' + pageResponse.status + ')');
-                    }
-
-                    pageHtml = await pageResponse.text();
+                const pageResponse = await fetch('pages/app_principal.html', { cache: 'no-store' });
+                if (!pageResponse.ok) {
+                    throw new Error('No se pudo leer pages/app_principal.html (' + pageResponse.status + ')');
                 }
 
+                const pageHtml = await pageResponse.text();
                 const principalStyle = extractPrincipalStyle(pageHtml);
                 if (principalStyle) {
                     const styleTag = document.createElement('style');
@@ -905,71 +649,16 @@
 
         async function boot() {
             try {
-                const totalCustoms = getCustomsTotal();
-                const minVisibleCount = Math.max(1, Math.round(totalCustoms * 0.01));
-                let loadedCustoms = 0;
-                let simulatedCustoms = minVisibleCount;
-                let simulationLockedToReal = false;
-                let simulationTimerId = null;
-                const bootStartAt = performance.now();
+                startIntroBirdsMusic();
+                updateProgress(0, 1, 'Analizando recursos de intro y principal...');
+                const resources = await discoverResources();
 
-                function getShownCustoms() {
-                    return simulationLockedToReal
-                        ? Math.max(minVisibleCount, loadedCustoms)
-                        : Math.max(minVisibleCount, loadedCustoms, simulatedCustoms);
-                }
+                await Promise.all([
+                    preloadAllResources(resources),
+                    initPrincipalApp()
+                ]);
 
-                function stopSimulation() {
-                    if (simulationTimerId !== null) {
-                        clearInterval(simulationTimerId);
-                        simulationTimerId = null;
-                    }
-                    simulationLockedToReal = true;
-                }
-
-                updateProgress(getShownCustoms(), totalCustoms, 'Invitados disfrazándose...');
-
-                simulationTimerId = setInterval(() => {
-                    if (simulationLockedToReal) return;
-                    if (simulatedCustoms < totalCustoms - 1) {
-                        simulatedCustoms += 1;
-                    }
-
-                    if (loadedCustoms >= simulatedCustoms) {
-                        stopSimulation();
-                    }
-
-                    updateProgress(getShownCustoms(), totalCustoms, 'Invitados disfrazándose...');
-                }, 2000);
-
-                await preloadAppResources({
-                    onCustomLoaded: () => {
-                        loadedCustoms += 1;
-
-                        if (!simulationLockedToReal && loadedCustoms >= simulatedCustoms) {
-                            stopSimulation();
-                        }
-
-                        updateProgress(getShownCustoms(), totalCustoms, 'Cargando customs...');
-                    }
-                });
-
-                stopSimulation();
-
-                const elapsedMs = performance.now() - bootStartAt;
-                const waitRemainingMs = POST_LOAD_WAIT_MS - elapsedMs;
-                if (waitRemainingMs > 0) {
-                    updateProgress(getShownCustoms(), totalCustoms, 'Ajustando escenario...');
-                    await waitMs(waitRemainingMs);
-                }
-
-                updateProgress(
-                    getShownCustoms(),
-                    totalCustoms,
-                    loadedCustoms >= totalCustoms
-                        ? 'Todo listo. Entrando en intro...'
-                        : 'Carga inicial completa. Reintentando recursos pendientes en segundo plano...'
-                );
+                updateProgress(resources.length, resources.length, 'Todo listo. Entrando en intro...');
                 setTimeout(enterIntro, 250);
             } catch (error) {
                 statusText.classList.add('error');
