@@ -59,11 +59,29 @@ function moveIdToFront(ids, targetId) {
 }
 
 const FIRST_VISIT_STORAGE_KEY = 'fb-principal-first-visit-done';
+
+function readStorageValue(key) {
+    try {
+        return localStorage.getItem(key) || sessionStorage.getItem(key);
+    } catch (_) {
+        return sessionStorage.getItem(key);
+    }
+}
+
+function markPrincipalVisitDone() {
+    try {
+        localStorage.setItem(FIRST_VISIT_STORAGE_KEY, '1');
+    } catch (_) {
+        // Si localStorage no está disponible, mantenemos fallback por sesión.
+    }
+    sessionStorage.setItem(FIRST_VISIT_STORAGE_KEY, '1');
+}
+
 const startCustomId = findStartCustomId(customsData);
-const isFirstPrincipalVisit = !sessionStorage.getItem(FIRST_VISIT_STORAGE_KEY);
+const isFirstPrincipalVisit = !readStorageValue(FIRST_VISIT_STORAGE_KEY);
 
 if (isFirstPrincipalVisit) {
-    sessionStorage.setItem(FIRST_VISIT_STORAGE_KEY, '1');
+    markPrincipalVisitDone();
 }
     
 const shuffledOrder = shuffleArray(Object.keys(customsData).map(Number));

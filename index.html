@@ -145,9 +145,16 @@
             height: 100dvh;
             width: auto;
             z-index: 0;
+            opacity: 1;
+            transition: opacity 0.24s linear;
         }
 
-        #intro-transition-video { display: none; z-index: 10; }
+        #intro-transition-video {
+            display: block;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+        }
 
         .overlay {
             position: absolute;
@@ -386,6 +393,7 @@
         let principalInitPromise = null;
         let principalAppReady = false;
         let appReady = false;
+        let introTransitionStarted = false;
         let startMusicTimeoutId = null;
         const PRELOAD_TIMEOUT_MS = 25000;
         const POST_LOAD_WAIT_MS = 10000;
@@ -962,7 +970,9 @@
         }
 
         function iniciarTransicionIntro() {
-            if (!appReady) return;
+            if (!appReady || introTransitionStarted) return;
+            introTransitionStarted = true;
+            btnStart.disabled = true;
 
             if (startMusicTimeoutId !== null) {
                 clearTimeout(startMusicTimeoutId);
@@ -975,11 +985,39 @@
             introAudio.startIntroBirdsMusic();
 
             introOverlay.style.display = 'none';
-            introBgVideo.style.display = 'none';
-            introTransitionVideo.style.display = 'block';
             introTransitionVideo.muted = true;
             introTransitionVideo.volume = 0;
-            introTransitionVideo.play().catch(() => {});
+
+            try {
+                introTransitionVideo.currentTime = 0;
+            } catch (_) {
+                // Puede fallar si el navegador aún no permite seek.
+            }
+
+            const revealTransitionFrame = () => {
+                introTransitionVideo.style.opacity = '1';
+                introBgVideo.style.opacity = '0';
+                setTimeout(() => {
+                    introBgVideo.style.display = 'none';
+                }, 260);
+            };
+
+            const onTransitionPlaying = () => {
+                introTransitionVideo.removeEventListener('playing', onTransitionPlaying);
+                revealTransitionFrame();
+            };
+
+            introTransitionVideo.addEventListener('playing', onTransitionPlaying, { once: true });
+            introTransitionVideo.play().catch(() => {
+                revealTransitionFrame();
+            });
+
+            // Fallback para navegadores que no disparan `playing` con rapidez.
+            setTimeout(() => {
+                if (introTransitionVideo.style.opacity !== '1') {
+                    revealTransitionFrame();
+                }
+            }, 220);
 
             setTimeout(() => {
                 transitionToPrincipal();
