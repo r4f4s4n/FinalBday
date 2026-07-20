@@ -166,6 +166,12 @@
             justify-content: center;
             align-items: center;
             z-index: 12;
+            opacity: 1;
+            transition: opacity 0.35s ease;
+        }
+
+        .overlay.is-fading-out {
+            opacity: 0;
         }
 
         .btn-start {
@@ -984,7 +990,11 @@
 
             introAudio.startIntroBirdsMusic();
 
-            introOverlay.style.display = 'none';
+            introOverlay.classList.add('is-fading-out');
+            introOverlay.style.pointerEvents = 'none';
+            setTimeout(() => {
+                introOverlay.style.display = 'none';
+            }, 360);
             introTransitionVideo.muted = true;
             introTransitionVideo.volume = 0;
 
