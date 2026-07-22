@@ -742,6 +742,9 @@
         function openCembePage() {
             const currentPath = window.location.pathname + window.location.search + window.location.hash;
             sessionStorage.setItem('fb-cembe-return-url', currentPath);
+            if (window.FinalBdayBackGuard && typeof window.FinalBdayBackGuard.allowNextUnload === 'function') {
+                window.FinalBdayBackGuard.allowNextUnload();
+            }
             window.location.href = 'app_cembe.html';
         }
 
